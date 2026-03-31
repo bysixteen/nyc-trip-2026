@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cork Family NYC Trip - April 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card-alt: #334155;
+      --accent: #f59e0b;
+      --accent-light: #fbbf24;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #a855f7;
+      --pink: #ec4899;
+      --border: #334155;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+    .hero {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e1b4b 100%);
+      padding: 3rem 1.5rem 2rem;
+      text-align: center;
+      border-bottom: 2px solid var(--accent);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f59e0b' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      opacity: 0.5;
+    }
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 0.25rem;
+      position: relative;
+    }
+    .hero .emoji { font-size: 3rem; margin-bottom: 0.5rem; display: block; }
+    .hero .subtitle {
+      color: var(--accent);
+      font-size: 1.1rem;
+      font-weight: 600;
+      position: relative;
+    }
+    .hero .dates {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 0.5rem;
+      position: relative;
+    }
+    .container { max-width: 800px; margin: 0 auto; padding: 0 1rem; }
+    .nav {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+    .nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.4rem 0.75rem;
+      border-radius: 999px;
+      display: inline-block;
+      transition: all 0.2s;
+    }
+    .nav a:hover, .nav a:focus { background: var(--card-alt); color: var(--accent); }
+    .section { padding: 2rem 0; }
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .day-card {
+      background: var(--card);
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .day-header {
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    .day-header:hover { background: var(--card-alt); }
+    .day-header h3 { font-size: 1.1rem; font-weight: 700; }
+    .day-header .day-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.15rem;
+    }
+    .day-header .weather {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .day-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      display: inline-block;
+    }
+    .badge-booked { background: var(--green); color: #000; }
+    .badge-travel { background: var(--blue); color: #fff; }
+    .badge-explore { background: var(--accent); color: #000; }
+    .day-content { padding: 0 1.25rem 1.25rem; display: none; }
+    .day-card.open .day-content { display: block; }
+    .day-card.open .chevron { transform: rotate(180deg); }
+    .chevron {
+      color: var(--text-muted);
+      transition: transform 0.2s;
+      font-size: 0.8rem;
+    }
+    .timeline { position: relative; padding-left: 1.5rem; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 0.5rem;
+      bottom: 0.5rem;
+      width: 2px;
+      background: var(--border);
+    }
+    .tl-item {
+      position: relative;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+    }
+    .tl-item::before {
+      content: '';
+      position: absolute;
+      left: -1.5rem;
+      top: 0.5rem;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--card-alt);
+      border: 2px solid var(--text-muted);
+    }
+    .tl-item.booked::before { background: var(--green); border-color: var(--green); }
+    .tl-item.highlight::before { background: var(--accent); border-color: var(--accent); }
+    .tl-time {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    .tl-title { font-weight: 600; margin: 0.15rem 0; }
+    .tl-detail { font-size: 0.85rem; color: var(--text-muted); }
+    .tl-transport {
+      font-size: 0.75rem;
+      color: var(--blue);
+      margin-top: 0.25rem;
+    }
+    .options {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin: 0.5rem 0;
+      font-size: 0.85rem;
+    }
+    .options-title {
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: var(--accent);
+      margin-bottom: 0.35rem;
+    }
+    .options ul { padding-left: 1.25rem; }
+    .options li { color: var(--text-muted); margin-bottom: 0.2rem; }
+    .options li strong { color: var(--text); }
+    .booking-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .booking-info h4 { font-size: 0.95rem; font-weight: 700; }
+    .booking-info .booking-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+    .booking-price {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .btn {
+      display: inline-block;
+      padding: 0.5rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-decoration: none;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .btn-book { background: var(--red); color: #fff; }
+    .btn-book:hover { background: #dc2626; }
+    .btn-booked { background: var(--green); color: #000; pointer-events: none; }
+    .btn-soon { background: var(--accent); color: #000; }
+    .btn-soon:hover { background: var(--accent-light); }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.75rem;
+    }
+    .info-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+    .info-card h4 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--accent);
+    }
+    .info-card p, .info-card li {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .info-card ul { padding-left: 1rem; }
+    .checklist { list-style: none; padding: 0; }
+    .checklist li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .checklist li:last-child { border-bottom: none; }
+    .check-box {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--text-muted);
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .check-box.checked {
+      background: var(--green);
+      border-color: var(--green);
+    }
+    .check-box.checked::after {
+      content: '\2713';
+      color: #000;
+      font-size: 0.7rem;
+      font-weight: 800;
+    }
+    .food-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+    }
+    .food-item h4 { font-size: 0.9rem; }
+    .food-item p { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem; }
+    .food-tag {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      margin-right: 0.25rem;
+    }
+    .tag-breakfast { background: #fbbf24; color: #000; }
+    .tag-lunch { background: #3b82f6; color: #fff; }
+    .tag-dinner { background: #a855f7; color: #fff; }
+    .tag-snack { background: #ec4899; color: #fff; }
+    .warning {
+      background: #451a03;
+      border: 1px solid #92400e;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      margin: 0.75rem 0;
+    }
+    .warning strong { color: var(--accent); }
+    .note {
+      background: #172554;
+      border: 1px solid #1e40af;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      margin: 0.75rem 0;
+      color: #93c5fd;
+    }
+    .packing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.25rem 1rem;
+    }
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 1.75rem; }
+      .packing-grid { grid-template-columns: 1fr; }
+      .booking-card { flex-direction: column; align-items: flex-start; }
+    }
+    .glance-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .glance-table th {
+      text-align: left;
+      padding: 0.5rem;
+      background: var(--card-alt);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .glance-table td {
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .glance-table tr:last-child td { border-bottom: none; }
+    a { color: var(--blue); }
+    a:hover { color: #60a5fa; }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <span class="emoji">🗽</span>
+  <h1>NYC 2026</h1>
+  <div class="subtitle">The Cork Family Adventure</div>
+  <div class="dates">Saturday 4 April &ndash; Thursday 9 April &bull; 5 Nights</div>
+</div>
+
+<div class="nav">
+  <div class="container" style="padding:0;">
+    <a href="#glance">At a Glance</a>
+    <a href="#bookings">Bookings</a>
+    <a href="#itinerary">Itinerary</a>
+    <a href="#checklists">Checklists</a>
+    <a href="#food">Food</a>
+    <a href="#transport">Transport</a>
+    <a href="#packing">Packing</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- AT A GLANCE -->
+  <div class="section" id="glance">
+    <div class="section-title">Quick Overview</div>
+    <table class="glance-table">
+      <thead>
+        <tr><th>Day</th><th>Theme</th><th>Highlights</th><th>Weather</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Sat 4</strong></td><td>Travel</td><td>Fly LHR &rarr; JFK, arrive 22:50</td><td>Rain (on plane)</td></tr>
+        <tr><td><strong>Sun 5</strong></td><td>Brunch &amp; Settle In</td><td>Times Square, <strong>View Brunch 1:30pm</strong>, colleague</td><td>Overcast 10&deg;C</td></tr>
+        <tr><td><strong>Mon 6</strong></td><td>Museum, 5th Ave &amp; Views</td><td><strong>Natural History Museum</strong>, Home Alone 2, <strong>5th Ave &amp; Nike</strong>, <strong>Summit sunset</strong></td><td>Sunny 8&deg;C</td></tr>
+        <tr><td><strong>Tue 7</strong></td><td>Liberty, DUMBO &amp; Broadway</td><td><strong>Friends apt &amp; Carrie Bradshaw</strong>, <strong>Statue of Liberty</strong>, <strong>Brooklyn Bridge</strong>, <strong>Pier 57</strong>, <strong>Stranger Things 7pm</strong></td><td>Cloudy 7&deg;C</td></tr>
+        <tr><td><strong>Wed 8</strong></td><td>Friends &amp; Finale</td><td><strong>Friends Experience</strong>, Spyscape/Sloomoo, shopping, <strong>Gayle's 7:45pm</strong></td><td>Sunny 7&deg;C</td></tr>
+        <tr><td><strong>Thu 9</strong></td><td>Last Day &amp; Home</td><td><strong>Empire State Building</strong>, last shopping, <strong>fly 18:40 from Newark</strong></td><td>Sunny 10&deg;C</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- BOOKINGS -->
+  <div class="section" id="bookings">
+    <div class="section-title">Bookings</div>
+
+    <h3 style="font-size:1rem; margin-bottom:0.75rem; color:var(--green);">Confirmed</h3>
+
+    <div class="booking-card">
+      <div class="booking-info">
+        <h4>Virgin Atlantic VS25 &mdash; LHR &rarr; JFK</h4>
+        <div class="booking-meta">Sat 4 Apr, 20:05 &rarr; 22:50 &bull; Ref: CNDRYL</div>
+      </div>
+      <span class="btn btn-booked">Booked</span>
+    </div>
+    <div class="booking-card">
+      <div class="booking-info">
+        <h4>Moxy Hotel, Times Square</h4>
+        <div class="booking-meta">Sat 4 &ndash; Thu 9 Apr (5 nights)</div>
+      </div>
+      <span class="btn btn-booked">Booked</span>
+    </div>
+    <div class="booking-card">
+      <div class="booking-info">
+        <h4>The View Restaurant &mdash; Sunday Brunch</h4>
+        <div class="booking-meta">Sun 5 Apr, 1:30pm &bull; Marriott Marquis, 47th floor</div>
+      </div>
+      <span class="btn btn-booked">Booked</span>
+    </div>
+    <div class="booking-card">
+      <div class="booking-info">
+        <h4>Stranger Things: The First Shadow</h4>
+        <div class="booking-meta">Tue 7 Apr, 7:00pm &bull; Marquis Theatre, 210 W 46th St &bull; 3hrs inc. interval</div>
+      </div>
+      <span class="btn btn-booked">Booked</span>
+    </div>
+    <div class="booking-card">
+      <div class="booking-info">
+        <h4>Gayle's Broadway Rose &mdash; Dinner</h4>
+        <div class="booking-meta">Wed 8 Apr, 7:45pm &bull; 228 W 47th St &bull; Singing Broadway waitstaff</div>
+      </div>
+      <span class="btn btn-booked">Booked</span>
+    </div>
+    <div class="booking-card">
+      <div class="booking-info">
+        <h4>Air Canada AC8499/864 &mdash; EWR &rarr; YUL &rarr; LHR</h4>
+        <div class="booking-meta">Thu 9 Apr, 18:40 &rarr; Fri 10 Apr 10:00 &bull; Ref: BB7HTX &bull; From Newark!</div>
+      </div>
+      <span class="btn btn-booked">Booked</span>
+    </div>
+
+    <h3 style="font-size:1rem; margin:1.25rem 0 0.75rem; color:var(--red);">Needs Booking</h3>
+
+    <div class="booking-card">
+      <div class="booking-info">
+        <h4>Statue of Liberty &mdash; Pedestal Tickets</h4>
+        <div class="booking-meta">Tue 7 Apr morning &bull; $27pp ($108 family)</div>
+      </div>
+      <a href="https://www.cityexperiences.com/new-york/city-cruises/statue/new-york-pedestal-reserve/" target="_blank" class="btn btn-book">Book Now</a>
+    </div>
+    <div class="booking-card">
+      <div class="booking-info">
+        <h4>Summit One Vanderbilt &mdash; Sunset Slot</h4>
+        <div class="booking-meta">Mon 6 Apr ~5:30pm &bull; ~$54pp (~$216 family)</div>
+      </div>
+      <a href="https://summitov.com/tickets/" target="_blank" class="btn btn-book">Book Now</a>
+    </div>
+    <div class="booking-card">
+      <div class="booking-info">
+        <h4>The Friends Experience</h4>
+        <div class="booking-meta">Wed 8 Apr ~10:30am &bull; $39.50&ndash;$59.50pp ($158&ndash;$238 family)</div>
+      </div>
+      <a href="https://friendstheexperience.com/new-york/" target="_blank" class="btn btn-book">Book Now</a>
+    </div>
+    <div class="booking-card">
+      <div class="booking-info">
+        <h4>Empire State Building &mdash; 86th Floor</h4>
+        <div class="booking-meta">Thu 9 Apr 10:00am &bull; $44pp ($176 family)</div>
+      </div>
+      <a href="https://www.esbnyc.com/buy-tickets" target="_blank" class="btn btn-book">Book Now</a>
+    </div>
+    <div class="booking-card">
+      <div class="booking-info">
+        <h4>American Museum of Natural History</h4>
+        <div class="booking-meta">Mon 6 Apr 10:00am &bull; ~$28pp (~$112 family)</div>
+      </div>
+      <a href="https://tickets.amnh.org/select" target="_blank" class="btn btn-soon">Book Soon</a>
+    </div>
+    <div class="booking-card">
+      <div class="booking-info">
+        <h4>Spyscape OR Sloomoo Institute</h4>
+        <div class="booking-meta">Wed 8 Apr ~1:30pm &bull; ~$42&ndash;$50pp (~$168&ndash;$200 family)</div>
+      </div>
+      <a href="https://spyscape.com/" target="_blank" class="btn btn-soon">Book Soon</a>
+    </div>
+
+    <h3 style="font-size:1rem; margin:1.25rem 0 0.75rem; color:var(--text-muted);">Estimated Budget (Attractions + Transport)</h3>
+    <div class="info-card">
+      <p style="font-size:1.5rem; font-weight:800; color:var(--accent);">~$1,220 &ndash; $1,340</p>
+      <p style="margin-top:0.25rem;">Plus ~$150&ndash;$250/day for family meals, shopping &amp; incidentals</p>
+    </div>
+  </div>
+
+  <!-- ITINERARY -->
+  <div class="section" id="itinerary">
+    <div class="section-title">Day-by-Day Itinerary</div>
+
+    <!-- SATURDAY -->
+    <div class="day-card open">
+      <div class="day-header" onclick="this.parentElement.classList.toggle('open')">
+        <div>
+          <h3>Saturday 4 April</h3>
+          <span style="color:var(--text-muted); font-size:0.85rem;">Travel Day</span>
+        </div>
+        <div class="day-meta">
+          <span class="day-badge badge-travel">Travel</span>
+          <span class="weather">Rain &bull; 4&ndash;6&deg;C</span>
+          <span class="chevron">&#9662;</span>
+        </div>
+      </div>
+      <div class="day-content">
+        <div class="timeline">
+          <div class="tl-item booked">
+            <div class="tl-time">20:05</div>
+            <div class="tl-title">Depart LHR Terminal 3 &mdash; Virgin Atlantic VS25</div>
+            <div class="tl-detail">Check in by 17:30. 7h 45m flight.</div>
+          </div>
+          <div class="tl-item booked">
+            <div class="tl-time">22:50 (NYC time)</div>
+            <div class="tl-title">Arrive JFK</div>
+            <div class="tl-detail">~30&ndash;45 mins through customs &amp; immigration</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">~23:30</div>
+            <div class="tl-title">Yellow taxi to Moxy</div>
+            <div class="tl-detail">Flat fare ~$52 + tolls/tip (~$75&ndash;85 total). Taxi rank outside arrivals.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">~00:30</div>
+            <div class="tl-title">Arrive Moxy, check in. Sleep!</div>
+          </div>
+        </div>
+        <div class="warning">
+          <strong>Remember:</strong> ESTA must be confirmed 72+ hours before travel. Download NYC subway map &amp; Google Maps offline on the plane.
+        </div>
+      </div>
+    </div>
+
+    <!-- SUNDAY -->
+    <div class="day-card">
+      <div class="day-header" onclick="this.parentElement.classList.toggle('open')">
+        <div>
+          <h3>Sunday 5 April</h3>
+          <span style="color:var(--text-muted); font-size:0.85rem;">Brunch, Colleague &amp; Settle In</span>
+        </div>
+        <div class="day-meta">
+          <span class="day-badge badge-booked">Booked: View Brunch</span>
+          <span class="weather">Overcast &bull; 10&ndash;11&deg;C</span>
+          <span class="chevron">&#9662;</span>
+        </div>
+      </div>
+      <div class="day-content">
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-time">09:30</div>
+            <div class="tl-title">Breakfast</div>
+            <div class="tl-detail">Light breakfast near hotel &mdash; don't fill up before brunch!</div>
+          </div>
+          <div class="tl-item highlight">
+            <div class="tl-time">10:30 &ndash; 12:30</div>
+            <div class="tl-title">Times Square exploration</div>
+            <div class="tl-detail">First proper look in daylight. Photos, billboards, soak it all in.</div>
+          </div>
+          <div class="tl-item booked">
+            <div class="tl-time">13:30</div>
+            <div class="tl-title">The View Restaurant &mdash; Sunday Brunch</div>
+            <div class="tl-detail">Rotating 360&deg; restaurant, 47th floor Marriott Marquis. Mimosas for adults. Full rotation takes 1 hour. 2 min walk from Moxy.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">16:00 &ndash; 17:30</div>
+            <div class="tl-title">Meet colleague</div>
+            <div class="tl-detail">Bryant Park (42nd St) recommended &mdash; 5 min walk from The View, easy subway from Queens.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">18:30</div>
+            <div class="tl-title">Dinner</div>
+            <div class="tl-detail">Near the Moxy</div>
+          </div>
+        </div>
+        <div class="options">
+          <div class="options-title">Dinner options</div>
+          <ul>
+            <li><strong>Raising Cane's</strong> (1501 Broadway) &mdash; 2 min from Moxy, kids' request!</li>
+            <li><strong>Koreatown</strong> (32nd St) &mdash; Korean BBQ, 10 min walk</li>
+            <li><strong>Joe's Pizza</strong> &mdash; classic NYC slice, quick &amp; cheap</li>
+          </ul>
+        </div>
+        <div class="note">You arrived at midnight last night &mdash; no shame in an early night!</div>
+      </div>
+    </div>
+
+    <!-- MONDAY -->
+    <div class="day-card">
+      <div class="day-header" onclick="this.parentElement.classList.toggle('open')">
+        <div>
+          <h3>Monday 6 April</h3>
+          <span style="color:var(--text-muted); font-size:0.85rem;">Museum, Home Alone, 5th Ave &amp; Summit</span>
+        </div>
+        <div class="day-meta">
+          <span class="day-badge badge-explore">Big Day</span>
+          <span class="weather">Sunny &bull; 7&ndash;9&deg;C</span>
+          <span class="chevron">&#9662;</span>
+        </div>
+      </div>
+      <div class="day-content">
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-time">08:30</div>
+            <div class="tl-title">Breakfast &mdash; Ess-a-Bagel</div>
+            <div class="tl-detail">Family-owned since 1976, massive NYC bagels. 831 3rd Ave.</div>
+            <div class="tl-transport">Subway to 51st St (10 min) or walk 15 mins from Moxy</div>
+          </div>
+          <div class="tl-item highlight">
+            <div class="tl-time">10:00 &ndash; 13:30</div>
+            <div class="tl-title">American Museum of Natural History</div>
+            <div class="tl-detail">Night at the Museum locations: T-Rex, Easter Island Head, blue whale, planetarium. Allow 3&ndash;4 hours. ~$28pp.</div>
+            <div class="tl-transport">Subway: C/B to 81st St&ndash;Museum of Natural History (15 mins)</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">13:30</div>
+            <div class="tl-title">Lunch</div>
+            <div class="tl-detail">Shake Shack (Columbus Ave), Jacob's Pickles, or picnic in Central Park.</div>
+          </div>
+          <div class="tl-item highlight">
+            <div class="tl-time">14:30 &ndash; 16:00</div>
+            <div class="tl-title">Home Alone 2 &mdash; Central Park locations</div>
+            <div class="tl-detail">Bethesda Terrace (Bird Lady), Wollman Rink (Sticky Bandits), Gapstow Bridge (Plaza views), Boat Lake.</div>
+          </div>
+          <div class="tl-item highlight">
+            <div class="tl-time">16:00</div>
+            <div class="tl-title">The Plaza Hotel</div>
+            <div class="tl-detail">Photos outside &mdash; recreate Kevin's arrival! 5th Ave &amp; 59th St.</div>
+          </div>
+          <div class="tl-item highlight">
+            <div class="tl-time">16:15 &ndash; 17:00</div>
+            <div class="tl-title">Walk down 5th Avenue</div>
+            <div class="tl-detail">Apple Store (glass cube), Tiffany &amp; Co, <strong>Nike House of Innovation</strong> (650 5th Ave &mdash; 6 floors!), Rockefeller Center, St Patrick's Cathedral.</div>
+          </div>
+          <div class="tl-item booked">
+            <div class="tl-time">17:30</div>
+            <div class="tl-title">Summit One Vanderbilt &mdash; Sunset</div>
+            <div class="tl-detail">Three floors of immersive mirrors, clouds &amp; reflections. Golden hour is unreal. ~$54pp. Next to Grand Central.</div>
+            <div class="tl-transport">Walk from Rockefeller Center (10&ndash;15 mins)</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">19:00</div>
+            <div class="tl-title">Grand Central Terminal</div>
+            <div class="tl-detail">Stunning ceiling, whispering gallery. Right next to Summit. Free.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">19:30</div>
+            <div class="tl-title">Dinner</div>
+            <div class="tl-detail">Koreatown (32nd St, 10 min walk), Grand Central food hall, or Joe's Pizza.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TUESDAY -->
+    <div class="day-card">
+      <div class="day-header" onclick="this.parentElement.classList.toggle('open')">
+        <div>
+          <h3>Tuesday 7 April</h3>
+          <span style="color:var(--text-muted); font-size:0.85rem;">TV Locations, Liberty, DUMBO &amp; Stranger Things</span>
+        </div>
+        <div class="day-meta">
+          <span class="day-badge badge-booked">Booked: Stranger Things</span>
+          <span class="weather">Cloudy &bull; 6&ndash;8&deg;C</span>
+          <span class="chevron">&#9662;</span>
+        </div>
+      </div>
+      <div class="day-content">
+        <div class="warning"><strong>Biggest day of the trip!</strong> Lots of walking. Comfortable shoes essential.</div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-time">08:00</div>
+            <div class="tl-title">Breakfast &mdash; Clinton St. Baking Company</div>
+            <div class="tl-detail">Legendary buttermilk pancakes with warm maple butter. 4 Clinton St, Lower East Side.</div>
+            <div class="tl-transport">Subway: F/M to Delancey St&ndash;Essex St (20 mins from Times Sq)</div>
+          </div>
+          <div class="tl-item highlight">
+            <div class="tl-time">09:30</div>
+            <div class="tl-title">Friends Apartment Building</div>
+            <div class="tl-detail">90 Bedford St (corner of Grove St), Greenwich Village. The actual exterior from the show. Photos from pavement only &mdash; private residence.</div>
+            <div class="tl-transport">Walk west from Clinton St (15 mins)</div>
+          </div>
+          <div class="tl-item highlight">
+            <div class="tl-time">09:40</div>
+            <div class="tl-title">Carrie Bradshaw's Steps</div>
+            <div class="tl-detail">66 Perry St. The iconic brownstone from Sex and the City. Chain across steps (no trespassing) but great street-level photo. 5 min walk from Friends building.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">10:00</div>
+            <div class="tl-title">Head to Battery Park</div>
+            <div class="tl-transport">Subway: 1 train from Christopher St&ndash;Sheridan Sq to South Ferry (15 mins)</div>
+          </div>
+          <div class="tl-item booked">
+            <div class="tl-time">10:30 &ndash; 13:00</div>
+            <div class="tl-title">Statue of Liberty &amp; Ellis Island</div>
+            <div class="tl-detail">Ferry from Battery Park. Pedestal observation deck (elevator available). Statue of Liberty Museum. Ellis Island Immigration Museum. $27pp. Audio guides included.</div>
+          </div>
+          <div class="tl-item highlight">
+            <div class="tl-time">13:00</div>
+            <div class="tl-title">Battery Park &mdash; Home Alone 2 spot</div>
+            <div class="tl-detail">Where Kevin looks through binoculars at the Statue of Liberty!</div>
+          </div>
+          <div class="tl-item highlight">
+            <div class="tl-time">13:30</div>
+            <div class="tl-title">DUMBO &mdash; Washington Street photo</div>
+            <div class="tl-detail">THE iconic shot of the Manhattan Bridge framed between brick buildings. Best in daylight!</div>
+            <div class="tl-transport">Subway: 4/5 from Bowling Green to Borough Hall (10 mins) + 10 min walk</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">14:00</div>
+            <div class="tl-title">Lunch in DUMBO</div>
+            <div class="tl-detail">Juliana's Pizza, Grimaldi's, or Time Out Market.</div>
+          </div>
+          <div class="tl-item highlight">
+            <div class="tl-time">15:00 &ndash; 15:45</div>
+            <div class="tl-title">Walk across Brooklyn Bridge</div>
+            <div class="tl-detail">DUMBO to Manhattan. 30&ndash;45 mins. Iconic skyline views ahead of you. Free.</div>
+          </div>
+          <div class="tl-item highlight">
+            <div class="tl-time">16:15</div>
+            <div class="tl-title">Chelsea Market</div>
+            <div class="tl-detail">Browse the food hall and shops. 75 9th Ave.</div>
+            <div class="tl-transport">Subway: A/C from Fulton St to 14th St (10 mins)</div>
+          </div>
+          <div class="tl-item highlight">
+            <div class="tl-time">16:45</div>
+            <div class="tl-title">The High Line</div>
+            <div class="tl-detail">Elevated park on old railway tracks. Enter at 16th St next to Chelsea Market. Free.</div>
+          </div>
+          <div class="tl-item highlight">
+            <div class="tl-time">17:15</div>
+            <div class="tl-title">Pier 57 Rooftop Park</div>
+            <div class="tl-detail">NYC's largest free rooftop park. Connects off the High Line. Spectacular Hudson River &amp; skyline views.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">17:45</div>
+            <div class="tl-title">Little Island at Pier 55</div>
+            <div class="tl-detail">Artificial island park, stunning architecture. Right next door. Free.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">18:00</div>
+            <div class="tl-title">Dinner &mdash; eat before the show!</div>
+            <div class="tl-detail">Quick bite near Times Square. Raising Cane's, Joe's Pizza, or Restaurant Row. Show is 3 hours!</div>
+          </div>
+          <div class="tl-item booked">
+            <div class="tl-time">19:00 &ndash; 22:00</div>
+            <div class="tl-title">Stranger Things: The First Shadow</div>
+            <div class="tl-detail">Marquis Theatre, 210 W 46th St (2 min walk from Moxy &mdash; same building as The View!). 3 hours inc. interval. Phenomenal stage effects.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">22:05</div>
+            <div class="tl-title">Walk back to Moxy (2 mins)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEDNESDAY -->
+    <div class="day-card">
+      <div class="day-header" onclick="this.parentElement.classList.toggle('open')">
+        <div>
+          <h3>Wednesday 8 April</h3>
+          <span style="color:var(--text-muted); font-size:0.85rem;">Friends, Fun &amp; Gayle's Finale</span>
+        </div>
+        <div class="day-meta">
+          <span class="day-badge badge-booked">Booked: Gayle's 7:45pm</span>
+          <span class="weather">Sunny &bull; 5&ndash;8&deg;C (cold!)</span>
+          <span class="chevron">&#9662;</span>
+        </div>
+      </div>
+      <div class="day-content">
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-time">09:00</div>
+            <div class="tl-title">Breakfast &mdash; Sarabeth's</div>
+            <div class="tl-detail">Famous lemon ricotta pancakes. NYC institution since 1981. Multiple locations.</div>
+          </div>
+          <div class="tl-item booked">
+            <div class="tl-time">10:30 &ndash; 12:00</div>
+            <div class="tl-title">The Friends Experience</div>
+            <div class="tl-detail">130 E 23rd St, Flatiron. Monica &amp; Rachel's apartment, Central Perk, Joey &amp; Chandler's place. ~90 mins. $39.50&ndash;$59.50pp.</div>
+            <div class="tl-transport">Subway: N/R to 23rd St (10 mins from Midtown)</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">12:15</div>
+            <div class="tl-title">Lunch</div>
+            <div class="tl-detail">Shake Shack original (Madison Square Park), Eataly (200 5th Ave), or Union Square area.</div>
+          </div>
+          <div class="tl-item highlight">
+            <div class="tl-time">13:30 &ndash; 15:30</div>
+            <div class="tl-title">Interactive Museum (choose one)</div>
+            <div class="tl-detail"><strong>Spyscape</strong> (928 8th Ave) &mdash; laser rooms, lie detectors, ~$42pp. OR <strong>Sloomoo Institute</strong> (475 Broadway) &mdash; slime museum, make your own, $49.99pp. OR <strong>Museum of Illusions</strong> (77 8th Ave) &mdash; budget option ~$29pp.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">15:30 &ndash; 17:00</div>
+            <div class="tl-title">Shopping</div>
+            <div class="tl-detail">5th Avenue flagships, SoHo (trendy shops &amp; street art), Times Square (M&amp;M's World, Hershey's, souvenirs).</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">17:00</div>
+            <div class="tl-title">Back to Moxy &mdash; freshen up</div>
+          </div>
+          <div class="tl-item booked">
+            <div class="tl-time">19:45</div>
+            <div class="tl-title">Gayle's Broadway Rose &mdash; Dinner</div>
+            <div class="tl-detail">228 W 47th St. Aspiring Broadway performers sing while you eat. Amazing milkshakes. 2 min walk from Moxy.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">~21:30</div>
+            <div class="tl-title">Final Times Square stroll</div>
+            <div class="tl-detail">Photos under the bright lights. You're right there.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- THURSDAY -->
+    <div class="day-card">
+      <div class="day-header" onclick="this.parentElement.classList.toggle('open')">
+        <div>
+          <h3>Thursday 9 April</h3>
+          <span style="color:var(--text-muted); font-size:0.85rem;">Empire State &amp; Departure</span>
+        </div>
+        <div class="day-meta">
+          <span class="day-badge badge-travel">Fly Home</span>
+          <span class="weather">Sunny &bull; 9&ndash;11&deg;C</span>
+          <span class="chevron">&#9662;</span>
+        </div>
+      </div>
+      <div class="day-content">
+        <div class="warning"><strong>Hard deadline:</strong> Leave Moxy by 14:15&ndash;14:30. Newark Airport by 15:30. Flight at 18:40 from EWR (not JFK!).</div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-time">08:30</div>
+            <div class="tl-title">Final NYC breakfast</div>
+            <div class="tl-detail">Ess-a-Bagel one more time, hotel breakfast, or grab something near Moxy.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">09:30</div>
+            <div class="tl-title">Check out of Moxy &mdash; store luggage</div>
+            <div class="tl-detail">Most hotels store luggage free. Confirm at check-in.</div>
+          </div>
+          <div class="tl-item booked">
+            <div class="tl-time">10:00</div>
+            <div class="tl-title">Empire State Building &mdash; 86th Floor</div>
+            <div class="tl-detail">20 W 34th St (10 min walk from Moxy). Open-air observation deck, 360&deg; views. Warmest &amp; clearest day of the trip! $44pp.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">11:30 &ndash; 13:00</div>
+            <div class="tl-title">Last-minute activities</div>
+            <div class="tl-detail">Roosevelt Island Tramway ($3 cable car, 20-min round trip), Rockefeller Center, Central Park, Macy's Herald Square, souvenir shopping.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">12:30</div>
+            <div class="tl-title">Lunch</div>
+            <div class="tl-detail">Raising Cane's (one last time!), Joe's Pizza, or quick grab near Moxy.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">13:30</div>
+            <div class="tl-title">Pick up luggage from Moxy</div>
+          </div>
+          <div class="tl-item booked">
+            <div class="tl-time">14:15</div>
+            <div class="tl-title">Walk to Penn Station</div>
+            <div class="tl-detail">10 min walk south on 7th Ave from Moxy to Penn Station (34th St).</div>
+          </div>
+          <div class="tl-item booked">
+            <div class="tl-time">14:30</div>
+            <div class="tl-title">NJ Transit to Newark Airport</div>
+            <div class="tl-detail">Penn Station &rarr; Newark Airport Station (25&ndash;30 mins). ~$16pp. AirTrain to terminal included. Buy on <a href="https://www.njtransit.com/" target="_blank">NJ Transit app</a>.</div>
+          </div>
+          <div class="tl-item booked">
+            <div class="tl-time">18:40</div>
+            <div class="tl-title">Depart EWR &rarr; Montreal &rarr; London</div>
+            <div class="tl-detail">Air Canada AC8499/864. Arrive LHR Friday 10 April at 10:00am.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKLISTS -->
+  <div class="section" id="checklists">
+    <div class="section-title">Film &amp; TV Location Checklists</div>
+
+    <h3 style="font-size:1rem; margin-bottom:0.5rem;">Home Alone 2: Lost in New York</h3>
+    <ul class="checklist">
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span><div><strong>The Plaza Hotel</strong> &mdash; 5th Ave &amp; 59th St<br><small style="color:var(--text-muted)">Monday</small></div></li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span><div><strong>Bethesda Terrace</strong> &mdash; Bird Lady pigeon scene<br><small style="color:var(--text-muted)">Monday &bull; Central Park</small></div></li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span><div><strong>Wollman Rink</strong> &mdash; Sticky Bandits ice skating<br><small style="color:var(--text-muted)">Monday &bull; Central Park</small></div></li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span><div><strong>Gapstow Bridge</strong> &mdash; Views of The Plaza<br><small style="color:var(--text-muted)">Monday &bull; Central Park</small></div></li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span><div><strong>Rockefeller Center</strong> &mdash; Duncan's Toy Chest vibes<br><small style="color:var(--text-muted)">Monday &bull; 5th Ave walk</small></div></li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span><div><strong>Battery Park</strong> &mdash; Kevin's binoculars / Statue of Liberty<br><small style="color:var(--text-muted)">Tuesday</small></div></li>
+    </ul>
+
+    <h3 style="font-size:1rem; margin:1.25rem 0 0.5rem;">Friends</h3>
+    <ul class="checklist">
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span><div><strong>90 Bedford St</strong> &mdash; Monica &amp; Rachel's apartment building<br><small style="color:var(--text-muted)">Tuesday morning &bull; Greenwich Village</small></div></li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span><div><strong>The Friends Experience</strong> &mdash; Full interactive experience<br><small style="color:var(--text-muted)">Wednesday &bull; 130 E 23rd St</small></div></li>
+    </ul>
+
+    <h3 style="font-size:1rem; margin:1.25rem 0 0.5rem;">Sex and the City</h3>
+    <ul class="checklist">
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span><div><strong>66 Perry St</strong> &mdash; Carrie Bradshaw's apartment steps<br><small style="color:var(--text-muted)">Tuesday morning &bull; West Village (5 min from Friends building)</small></div></li>
+    </ul>
+
+    <h3 style="font-size:1rem; margin:1.25rem 0 0.5rem;">Night at the Museum</h3>
+    <ul class="checklist">
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span><div><strong>American Museum of Natural History</strong><br><small style="color:var(--text-muted)">Monday &bull; Central Park West at 79th St</small></div></li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span><div><strong>T-Rex skeleton</strong> (lobby)</div></li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span><div><strong>Easter Island Head</strong> (Dum Dum!)</div></li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span><div><strong>Blue whale</strong> (Ocean Hall)</div></li>
+    </ul>
+  </div>
+
+  <!-- FOOD -->
+  <div class="section" id="food">
+    <div class="section-title">Food Guide</div>
+
+    <h3 style="font-size:1rem; margin-bottom:0.5rem;">Booked Restaurants</h3>
+    <div class="food-item">
+      <h4>The View Restaurant <span class="food-tag tag-lunch">Brunch</span></h4>
+      <p>Sun 5 Apr, 1:30pm &bull; 1535 Broadway (Marriott Marquis, 47th floor) &bull; Rotating 360&deg; views</p>
+    </div>
+    <div class="food-item">
+      <h4>Gayle's Broadway Rose <span class="food-tag tag-dinner">Dinner</span></h4>
+      <p>Wed 8 Apr, 7:45pm &bull; 228 W 47th St &bull; Singing Broadway waitstaff</p>
+    </div>
+
+    <h3 style="font-size:1rem; margin:1.25rem 0 0.5rem;">Breakfast Spots</h3>
+    <div class="food-item">
+      <h4>Ess-a-Bagel <span class="food-tag tag-breakfast">Breakfast</span></h4>
+      <p>Massive NYC bagels, family-owned since 1976 &bull; 831 3rd Ave &bull; $10&ndash;15pp</p>
+    </div>
+    <div class="food-item">
+      <h4>Clinton St. Baking Company <span class="food-tag tag-breakfast">Breakfast</span></h4>
+      <p>Legendary buttermilk pancakes &bull; 4 Clinton St (Lower East Side) &bull; $20&ndash;25pp</p>
+    </div>
+    <div class="food-item">
+      <h4>Sarabeth's <span class="food-tag tag-breakfast">Breakfast</span></h4>
+      <p>Lemon ricotta pancakes, NYC institution since 1981 &bull; Multiple locations &bull; $20&ndash;28pp</p>
+    </div>
+
+    <h3 style="font-size:1rem; margin:1.25rem 0 0.5rem;">The Kids Want</h3>
+    <div class="food-item">
+      <h4>Raising Cane's <span class="food-tag tag-snack">Kids' Pick</span></h4>
+      <p>Chicken fingers, Texas toast, Cane's sauce &bull; <a href="https://locations.raisingcanes.com/ny/new-york/1501-broadway" target="_blank">1501 Broadway</a> (2 min from Moxy!) &bull; 9am&ndash;1am &bull; ~$10&ndash;15pp</p>
+    </div>
+    <div class="food-item">
+      <h4>Crumbl Cookie <span class="food-tag tag-snack">Kids' Pick</span></h4>
+      <p>Rotating weekly flavours &bull; <a href="https://crumblcookies.com/stores/ny/new-york-city-area" target="_blank">301 Columbus Ave (UWS)</a> / 238 7th Ave (Chelsea) &bull; <strong>Closed Sundays</strong> &bull; $5&ndash;8 per cookie</p>
+    </div>
+
+    <h3 style="font-size:1rem; margin:1.25rem 0 0.5rem;">Classic NYC Eats</h3>
+    <div class="food-item">
+      <h4>Joe's Pizza</h4>
+      <p>THE classic NYC slice &bull; Multiple locations (7 Carmine St is the original) &bull; ~$5/slice</p>
+    </div>
+    <div class="food-item">
+      <h4>Juliana's Pizza</h4>
+      <p>Best pizza in Brooklyn &bull; 19 Old Fulton St, DUMBO &bull; ~$20&ndash;25 per pizza</p>
+    </div>
+    <div class="food-item">
+      <h4>Shake Shack</h4>
+      <p>Burgers, crinkle fries, shakes &bull; Multiple locations (original at Madison Square Park) &bull; ~$15&ndash;20pp</p>
+    </div>
+    <div class="food-item">
+      <h4>Levain Bakery</h4>
+      <p>6oz cookies &mdash; walnut chocolate chip is the classic &bull; Multiple locations &bull; ~$6&ndash;7 per cookie</p>
+    </div>
+  </div>
+
+  <!-- TRANSPORT -->
+  <div class="section" id="transport">
+    <div class="section-title">Getting Around</div>
+
+    <div class="info-card" style="margin-bottom:1rem;">
+      <h4>OMNY &mdash; Tap-and-Pay Subway</h4>
+      <p><strong>$3.00 per ride</strong> &bull; Tap contactless bank card, Apple Pay or Google Pay at turnstile</p>
+      <p style="margin-top:0.5rem;"><strong>Weekly cap: $35/person</strong> &mdash; after 12 rides, the rest are FREE. Each family member must use the same card/device every time.</p>
+      <p style="margin-top:0.5rem;">Family of 4 &times; $35 = <strong>$140 total</strong> for unlimited travel all week.</p>
+      <p style="margin-top:0.5rem;"><a href="https://omny.info/fares" target="_blank">OMNY Fares</a> &bull; <a href="https://www.mta.info/fares-tolls/subway-bus/tap-and-ride" target="_blank">MTA Guide</a></p>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <h4>JFK &rarr; Moxy (Sat night)</h4>
+        <p><strong>Yellow Taxi</strong> (recommended)<br>Flat fare ~$75&ndash;85 total<br>45&ndash;60 mins, no traffic at 11pm<br>Taxi rank outside every terminal</p>
+      </div>
+      <div class="info-card">
+        <h4>Moxy &rarr; Newark EWR (Thu)</h4>
+        <p><strong>NJ Transit from Penn Station</strong><br>~$16pp ($64 family)<br>Walk to Penn Station (10 mins from Moxy) &rarr; train to Newark Airport Station (25&ndash;30 mins) &rarr; AirTrain to terminal</p>
+        <p style="margin-top:0.5rem;"><a href="https://www.njtransit.com/" target="_blank">NJ Transit App</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FREE HIGHLIGHTS -->
+  <div class="section">
+    <div class="section-title">Free &amp; Cheap Highlights</div>
+    <div class="info-grid">
+      <div class="info-card">
+        <h4>Brooklyn Bridge Walk</h4>
+        <p>Free &bull; DUMBO to City Hall &bull; Tuesday afternoon</p>
+      </div>
+      <div class="info-card">
+        <h4>DUMBO &amp; Washington St Photo</h4>
+        <p>Free &bull; THE iconic bridge photo &bull; Tuesday daytime</p>
+      </div>
+      <div class="info-card">
+        <h4>Pier 57 Rooftop Park</h4>
+        <p>Free &bull; NYC's largest free rooftop &bull; Hudson River views &bull; Tuesday</p>
+      </div>
+      <div class="info-card">
+        <h4>The High Line</h4>
+        <p>Free &bull; Elevated park on old train tracks &bull; Tuesday</p>
+      </div>
+      <div class="info-card">
+        <h4>Little Island</h4>
+        <p>Free &bull; Artificial island park at Pier 55 &bull; Tuesday</p>
+      </div>
+      <div class="info-card">
+        <h4>Central Park</h4>
+        <p>Free &bull; Home Alone 2 locations &bull; Monday</p>
+      </div>
+      <div class="info-card">
+        <h4>Grand Central Terminal</h4>
+        <p>Free &bull; Stunning ceiling, whispering gallery &bull; Monday</p>
+      </div>
+      <div class="info-card">
+        <h4>5th Avenue Walk</h4>
+        <p>Free &bull; Apple Store, Tiffany's, Nike, Rockefeller Center &bull; Monday</p>
+      </div>
+      <div class="info-card">
+        <h4>Roosevelt Island Tramway</h4>
+        <p>$3pp &bull; Cable car over East River &bull; Thursday morning</p>
+      </div>
+      <div class="info-card">
+        <h4>9/11 Memorial Pools</h4>
+        <p>Free (outdoor) &bull; Powerful &bull; Near Battery Park &bull; Tuesday</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PACKING -->
+  <div class="section" id="packing">
+    <div class="section-title">Packing List</div>
+    <ul class="checklist packing-grid">
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span>Passports (valid 6+ months)</li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span>ESTA confirmation</li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span>Flight confirmations</li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span>Comfortable walking shoes</li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span>Warm layers &amp; coat</li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span>Rain jacket / umbrella</li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span>Phone chargers &amp; battery pack</li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span>UK &rarr; US plug adaptors</li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span>Phone storage for photos</li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span>4 contactless bank cards (OMNY)</li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span>Snacks for flights</li>
+      <li><span class="check-box" onclick="this.classList.toggle('checked')"></span>Headphones</li>
+    </ul>
+  </div>
+
+  <!-- REFERENCES -->
+  <div class="section">
+    <div class="section-title">Quick Reference</div>
+    <div class="info-grid">
+      <div class="info-card">
+        <h4>Flight References</h4>
+        <p>Virgin Atlantic: <strong>CNDRYL</strong><br>Air Canada: <strong>BB7HTX</strong></p>
+      </div>
+      <div class="info-card">
+        <h4>Key Numbers</h4>
+        <p>Statue City Cruises: 1-877-523-9849<br>US Emergency: 911<br>UK FCDO: +44 20 7008 5000</p>
+      </div>
+      <div class="info-card">
+        <h4>Useful Apps</h4>
+        <p>NJ Transit &bull; TodayTix &bull; Google Maps (offline) &bull; Uber/Lyft</p>
+      </div>
+      <div class="info-card">
+        <h4>Hotel</h4>
+        <p>Moxy, Times Square<br>5 nights: Sat 4 &ndash; Thu 9 Apr</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center; padding:2rem 0; color:var(--text-muted); font-size:0.8rem;">
+    <p>Have an incredible trip, Corks! 🗽</p>
+  </div>
+
+</div>
+
+<script>
+  // Open first day card by default, close others on mobile for cleaner view
+  document.querySelectorAll('.day-card').forEach((card, i) => {
+    if (i === 0) card.classList.add('open');
+  });
+</script>
+
+</body>
+</html>
