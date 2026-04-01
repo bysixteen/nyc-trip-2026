@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NYC Trip 2026</title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --card: #1a1a1a;
+      --card-hover: #222;
+      --border: #2a2a2a;
+      --text: #e0e0e0;
+      --muted: #888;
+      --green: #4ade80;
+      --blue: #6b8afd;
+      --red: #f87171;
+      --light-blue: #93c5fd;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+
+    /* Header */
+    #header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      z-index: 10;
+    }
+    #header h1 { font-size: 1rem; white-space: nowrap; }
+    .day-buttons { display: flex; gap: 5px; flex-wrap: wrap; }
+    .day-btn {
+      font-family: inherit; font-size: 0.7rem; font-weight: 600;
+      padding: 5px 10px; border: 2px solid #333; border-radius: 6px;
+      background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s;
+    }
+    .day-btn:hover { border-color: var(--muted); color: var(--text); }
+    .day-btn.active { color: #fff; }
+
+    /* Split layout */
+    #split {
+      display: flex;
+      height: calc(100vh - 48px);
+    }
+    #itinerary {
+      width: 38%;
+      min-width: 300px;
+      overflow-y: auto;
+      padding: 0.8rem;
+      border-right: 1px solid var(--border);
+      scrollbar-width: thin;
+      scrollbar-color: #333 transparent;
+    }
+    #itinerary::-webkit-scrollbar { width: 6px; }
+    #itinerary::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    #map-container {
+      flex: 1;
+      position: relative;
+    }
+    #map { width: 100%; height: 100%; }
+
+    /* Itinerary styles */
+    .day { background: var(--card); border-radius: 10px; margin-bottom: 0.8rem; overflow: hidden; }
+    .day-head { padding: 0.6rem 0.8rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+    .day-head:hover { background: var(--card-hover); }
+    .day-head h2 { font-size: 0.85rem; }
+    .day-head .meta { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .tag { font-size: 0.65rem; background: #333; color: #ccc; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+    .tag.booked { background: #1a3a2a; color: var(--green); }
+    .weather { font-size: 0.7rem; color: var(--muted); white-space: nowrap; }
+    .arrow { transition: transform 0.2s; font-size: 0.7rem; }
+    .day.open .arrow { transform: rotate(180deg); }
+    .day-body { display: none; padding: 0.4rem 0.8rem 0.8rem; }
+    .day.open .day-body { display: block; }
+
+    .item {
+      display: flex; gap: 0.6rem; padding: 0.4rem 0.2rem; border-bottom: 1px solid #1f1f1f;
+      border-radius: 4px; cursor: pointer; transition: background 0.15s;
+    }
+    .item:hover { background: #252525; }
+    .item.active { background: #1a2a3a; border-left: 3px solid var(--blue); padding-left: 0.4rem; }
+    .item:last-child { border-bottom: none; }
+    .time { width: 80px; min-width: 80px; flex-shrink: 0; font-size: 0.75rem; color: var(--muted); padding-top: 2px; white-space: nowrap; }
+    .info { flex: 1; }
+    .info .title { font-size: 0.82rem; font-weight: 600; }
+    .info .title.booked { color: var(--green); }
+    .info .detail { font-size: 0.75rem; color: #999; margin-top: 1px; }
+    .info .transport { font-size: 0.7rem; color: var(--blue); margin-top: 1px; }
+    .warn { background: #2a1a1a; color: var(--red); font-size: 0.75rem; padding: 0.4rem 0.6rem; border-radius: 6px; margin-bottom: 0.4rem; }
+    .note { background: #1a1a2a; color: var(--light-blue); font-size: 0.75rem; padding: 0.4rem 0.6rem; border-radius: 6px; margin-top: 0.4rem; }
+    .opts { font-size: 0.75rem; color: #999; margin-top: 0.4rem; padding: 0.4rem 0.6rem; background: #151515; border-radius: 6px; }
+    .opts strong { color: #ccc; }
+    .opts ul { margin: 0.2rem 0 0 1rem; }
+    .opts li { margin-bottom: 0.15rem; }
+
+    /* Map elements */
+    .marker {
+      display: flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; border-radius: 50%;
+      font-size: 11px; font-weight: 700; color: #fff;
+      border: 2px solid #fff; cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    .mapboxgl-popup-content {
+      background: var(--card) !important; color: var(--text) !important;
+      border: 1px solid var(--border) !important; border-radius: 8px !important;
+      padding: 10px 12px !important; font-family: inherit !important; max-width: 220px !important;
+    }
+    .mapboxgl-popup-tip { border-top-color: var(--card) !important; }
+    .mapboxgl-popup-close-button { color: var(--muted) !important; font-size: 16px !important; }
+    .popup-name { font-weight: 600; font-size: 13px; margin-bottom: 3px; }
+    .popup-time { font-size: 11px; color: var(--muted); }
+    .popup-day { font-size: 10px; font-weight: 600; margin-top: 3px; display: inline-block; padding: 1px 5px; border-radius: 4px; }
+
+    #legend {
+      position: absolute; bottom: 24px; left: 12px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 12px; font-size: 11px; z-index: 5; display: none;
+    }
+    #legend.visible { display: block; }
+    .legend-item { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+    .legend-item:last-child { margin-bottom: 0; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      #split { flex-direction: column; }
+      #itinerary { width: 100%; min-width: unset; height: 55vh; border-right: none; border-bottom: 1px solid var(--border); }
+      #map-container { height: 45vh; }
+      .day-btn { font-size: 0.65rem; padding: 4px 7px; }
+      #header h1 { font-size: 0.85rem; }
+    }
+    @media (max-width: 400px) {
+      #itinerary { height: 60vh; }
+      #map-container { height: 40vh; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <h1>NYC 2026</h1>
+  <div class="day-buttons" id="dayButtons"></div>
+</div>
+
+<div id="split">
+  <div id="itinerary">
+
+    <!-- SATURDAY -->
+    <div class="day open" data-day="sat">
+      <div class="day-head" onclick="this.parentElement.classList.toggle('open')">
+        <div>
+          <h2>Saturday 4 April</h2>
+          <span class="weather">Rain &bull; 4&ndash;6&deg;C</span>
+        </div>
+        <div class="meta"><span class="tag">Travel</span><span class="arrow">&#9662;</span></div>
+      </div>
+      <div class="day-body">
+        <div class="warn">ESTA must be confirmed 72+ hours before travel. Download NYC subway map &amp; Google Maps offline on the plane.</div>
+        <div class="item" data-stop="0"><div class="time">20:05</div><div class="info"><div class="title booked">Depart LHR T3 &mdash; Virgin Atlantic VS25</div><div class="detail">Check in by 17:30. 7h 45m flight.</div></div></div>
+        <div class="item" data-stop="1"><div class="time">22:50 NYC</div><div class="info"><div class="title booked">Arrive JFK</div><div class="detail">~30&ndash;45 mins through customs &amp; immigration</div></div></div>
+        <div class="item" data-stop="2"><div class="time">~23:30</div><div class="info"><div class="title">Yellow taxi to Moxy</div><div class="detail">Flat fare ~$52 + tolls/tip (~$75&ndash;85 total)</div></div></div>
+        <div class="item" data-stop="3"><div class="time">~00:30</div><div class="info"><div class="title">Arrive Moxy, check in. Sleep!</div></div></div>
+      </div>
+    </div>
+
+    <!-- SUNDAY -->
+    <div class="day" data-day="sun">
+      <div class="day-head" onclick="this.parentElement.classList.toggle('open')">
+        <div>
+          <h2>Sunday 5 April</h2>
+          <span class="weather">Overcast &bull; 10&ndash;11&deg;C</span>
+        </div>
+        <div class="meta"><span class="tag booked">Booked: Summit &amp; Brunch</span><span class="arrow">&#9662;</span></div>
+      </div>
+      <div class="day-body">
+        <div class="item" data-stop="0"><div class="time">08:30</div><div class="info"><div class="title">Light breakfast at hotel</div><div class="detail">Don't fill up before brunch!</div></div></div>
+        <div class="item" data-stop="1"><div class="time">09:00&ndash;11:00</div><div class="info"><div class="title booked">Summit One Vanderbilt</div><div class="detail">Immersive mirrors, clouds &amp; reflections. ~$54pp. Go first thing to beat the crowds.</div><div class="transport">Subway: 1 from Canal St to 42nd St (15 mins), walk to Grand Central</div></div></div>
+        <div class="item" data-stop="2"><div class="time">11:00&ndash;12:30</div><div class="info"><div class="title">Times Square exploration</div><div class="detail">First proper look in daylight. Photos, billboards, soak it all in. 5 min walk from Summit.</div></div></div>
+        <div class="item" data-stop="3"><div class="time">13:30&ndash;15:30</div><div class="info"><div class="title booked">The View Restaurant &mdash; Sunday Brunch</div><div class="detail">Rotating 360&deg; restaurant, 47th floor Marriott Marquis. Mimosas for adults.</div></div></div>
+        <div class="item" data-stop="4"><div class="time">15:45&ndash;16:15</div><div class="info"><div class="title">SoHo wander</div><div class="detail">Cast-iron architecture, street art, boutiques &amp; galleries.</div><div class="transport">Subway: 1 from 42nd St to Canal St (15 mins), walk into SoHo</div></div></div>
+        <div class="item" data-stop="5"><div class="time">16:15&ndash;16:45</div><div class="info"><div class="title">Ghostbusters Firehouse (Hook &amp; Ladder 8)</div><div class="detail">14 N Moore St, Tribeca. 10 min walk south from SoHo. Free!</div></div></div>
+        <div class="item" data-stop="6"><div class="time">17:00&ndash;17:45</div><div class="info"><div class="title">Chinatown</div><div class="detail">Canal St &amp; Mott St &mdash; street markets, bakeries, bubble tea.</div></div></div>
+        <div class="item" data-stop="7"><div class="time">18:00</div><div class="info"><div class="title">Dinner &mdash; Little Italy</div><div class="detail">Mulberry St, just north of Chinatown. 5 min walk.</div></div></div>
+        <div class="opts">
+          <strong>Little Italy dinner options:</strong>
+          <ul>
+            <li><strong>Lombardi's</strong> (32 Spring St) &mdash; America's first pizzeria, coal-fired</li>
+            <li><strong>Rubirosa</strong> (235 Mulberry St) &mdash; thin-crust vodka pizza</li>
+            <li><strong>Da Nico</strong> (164 Mulberry St) &mdash; outdoor garden, classic Italian</li>
+            <li><strong>Ferrara Bakery</strong> (195 Grand St) &mdash; cannoli &amp; espresso dessert</li>
+          </ul>
+        </div>
+        <div class="note">You arrived at midnight last night &mdash; no shame in an early night!</div>
+      </div>
+    </div>
+
+    <!-- MONDAY -->
+    <div class="day" data-day="mon">
+      <div class="day-head" onclick="this.parentElement.classList.toggle('open')">
+        <div>
+          <h2>Monday 6 April</h2>
+          <span class="weather">Sunny &bull; 7&ndash;9&deg;C</span>
+        </div>
+        <div class="meta"><span class="tag booked">Booked: Circle Line 18:30</span><span class="arrow">&#9662;</span></div>
+      </div>
+      <div class="day-body">
+        <div class="item" data-stop="0"><div class="time">08:00</div><div class="info"><div class="title">Head out from Moxy</div></div></div>
+        <div class="item" data-stop="1"><div class="time">08:30</div><div class="info"><div class="title">Breakfast &mdash; Ess-a-Bagel</div><div class="detail">831 3rd Ave (near 51st St). Massive NYC bagels since 1976.</div><div class="transport">Subway: 1 from Canal St to 50th St (20 mins)</div></div></div>
+        <div class="item" data-stop="2"><div class="time">09:30&ndash;11:30</div><div class="info"><div class="title">Roosevelt Island</div><div class="detail">Tramway cable car over East River ($3pp). FDR Four Freedoms Park, Smallpox Hospital ruins, waterfront promenade.</div><div class="transport">Walk 10 mins from Ess-a-Bagel to Tramway at 59th St &amp; 2nd Ave</div></div></div>
+        <div class="item" data-stop="3"><div class="time">11:45</div><div class="info"><div class="title">Lunch</div><div class="detail">The Smith (956 2nd Ave) or Central Park picnic.</div></div></div>
+        <div class="item" data-stop="3"><div class="time">12:30&ndash;13:30</div><div class="info"><div class="title">Home Alone 2 &mdash; Central Park</div><div class="detail">Bethesda Terrace (Bird Lady), Wollman Rink (Sticky Bandits), Gapstow Bridge (Plaza views).</div></div></div>
+        <div class="item" data-stop="4"><div class="time">13:30</div><div class="info"><div class="title">The Plaza Hotel</div><div class="detail">Photos outside &mdash; recreate Kevin's arrival! 5th Ave &amp; 59th St.</div></div></div>
+        <div class="item" data-stop="5"><div class="time">13:45&ndash;15:30</div><div class="info"><div class="title">Walk down 5th Avenue</div><div class="detail">Apple Store, Tiffany's, Nike House of Innovation, Rockefeller Center, St Patrick's Cathedral.</div></div></div>
+        <div class="item" data-stop="6"><div class="time">16:00</div><div class="info"><div class="title">Head to Pier 83 for Circle Line</div><div class="transport">Walk west from 5th Ave along 42nd St to Pier 83 at the Hudson River (15 mins)</div></div></div>
+        <div class="item" data-stop="6"><div class="time">18:30&ndash;21:00</div><div class="info"><div class="title booked">Circle Line &mdash; Sunset Cruise</div><div class="detail">2.5 hrs around Manhattan. 130+ landmarks. Sunset at 19:26. ~$44pp. Departs Pier 83.</div></div></div>
+        <div class="item" data-stop="7"><div class="time">21:15</div><div class="info"><div class="title">Dinner &mdash; Hell's Kitchen</div><div class="detail">Steps from Pier 83. Great restaurants on 9th Ave between 42nd&ndash;52nd St. Try Marseille, &Ccedil;a Va, or grab Raising Cane's in Times Sq.</div></div></div>
+      </div>
+    </div>
+
+    <!-- TUESDAY -->
+    <div class="day" data-day="tue">
+      <div class="day-head" onclick="this.parentElement.classList.toggle('open')">
+        <div>
+          <h2>Tuesday 7 April</h2>
+          <span class="weather">Cloudy &bull; 6&ndash;8&deg;C</span>
+        </div>
+        <div class="meta"><span class="tag booked">Booked: Stranger Things</span><span class="arrow">&#9662;</span></div>
+      </div>
+      <div class="day-body">
+        <div class="warn"><strong>Biggest day!</strong> Lots of walking. Comfortable shoes essential.</div>
+        <div class="item" data-stop="0"><div class="time">08:00</div><div class="info"><div class="title">Breakfast at the hotel</div><div class="detail">Big day ahead &mdash; fuel up at the Moxy.</div></div></div>
+        <div class="item" data-stop="1"><div class="time">09:00</div><div class="info"><div class="title">Head to Battery Park</div><div class="transport">Subway: 1 from Canal St to South Ferry (15 mins)</div></div></div>
+        <div class="item" data-stop="1"><div class="time">09:30&ndash;12:30</div><div class="info"><div class="title booked">Statue of Liberty &amp; Ellis Island</div><div class="detail">Ferry from Battery Park. Pedestal deck, museums. $27pp.</div></div></div>
+        <div class="item" data-stop="1"><div class="time">12:30</div><div class="info"><div class="title">Battery Park &mdash; Home Alone 2 binoculars spot</div></div></div>
+        <div class="item" data-stop="2"><div class="time">13:00</div><div class="info"><div class="title">DUMBO &mdash; iconic Washington St photo</div><div class="detail">Manhattan Bridge framed between brick buildings.</div><div class="transport">NYC Ferry from Pier 11 to DUMBO (10 mins, $4pp)</div></div></div>
+        <div class="item" data-stop="2"><div class="time">13:30</div><div class="info"><div class="title">Lunch in DUMBO</div><div class="detail">Juliana's Pizza, Grimaldi's, or Time Out Market.</div></div></div>
+        <div class="item" data-stop="3"><div class="time">14:30&ndash;15:15</div><div class="info"><div class="title">Walk across Brooklyn Bridge</div><div class="detail">DUMBO to Manhattan. 30&ndash;45 mins. Iconic skyline views.</div></div></div>
+        <div class="item" data-stop="4"><div class="time">15:30</div><div class="info"><div class="title">Friends Apartment (90 Bedford St)</div><div class="detail">The actual exterior from the show. Greenwich Village.</div><div class="transport">Subway: 4/5/6 from Brooklyn Bridge&ndash;City Hall to W 4th St (10 mins)</div></div></div>
+        <div class="item" data-stop="5"><div class="time">15:40</div><div class="info"><div class="title">Carrie Bradshaw's Steps (66 Perry St)</div><div class="detail">5 min walk from Friends building.</div></div></div>
+        <div class="item" data-stop="6"><div class="time">15:50&ndash;16:15</div><div class="info"><div class="title">Greenwich Village wander</div><div class="detail">Washington Square Park, Bleecker St cafes &amp; boutiques.</div></div></div>
+        <div class="item" data-stop="6"><div class="time">16:30</div><div class="info"><div class="title">Chill / explore near hotel</div><div class="detail">Rest up before tonight's show, or wander Lower Manhattan.</div><div class="transport">Subway: 1 from Christopher St to Canal St (5 mins) or walk (20 mins)</div></div></div>
+        <div class="item" data-stop="7"><div class="time">17:30</div><div class="info"><div class="title">Quick dinner before the show</div><div class="detail">Raising Cane's (1501 Broadway), Joe's Pizza, or Restaurant Row.</div><div class="transport">Subway: 1 from Canal St to 42nd St&ndash;Times Sq (15 mins)</div></div></div>
+        <div class="item" data-stop="7"><div class="time">19:00&ndash;22:00</div><div class="info"><div class="title booked">Stranger Things: The First Shadow</div><div class="detail">Marquis Theatre, 210 W 46th St. 3 hours inc. interval.</div></div></div>
+        <div class="item"><div class="time">22:05</div><div class="info"><div class="title">Subway back to Moxy (15 mins)</div></div></div>
+      </div>
+    </div>
+
+    <!-- WEDNESDAY -->
+    <div class="day" data-day="wed">
+      <div class="day-head" onclick="this.parentElement.classList.toggle('open')">
+        <div>
+          <h2>Wednesday 8 April</h2>
+          <span class="weather">Sunny &bull; 5&ndash;8&deg;C (cold!)</span>
+        </div>
+        <div class="meta"><span class="tag booked">Booked: Gayle's 19:45</span><span class="arrow">&#9662;</span></div>
+      </div>
+      <div class="day-body">
+        <div class="item" data-stop="0"><div class="time">09:00</div><div class="info"><div class="title">Breakfast at hotel &mdash; relaxed start</div><div class="detail">No early rush today. Enjoy the morning.</div></div></div>
+        <div class="item" data-stop="0"><div class="time">10:00</div><div class="info"><div class="title">Head downtown</div><div class="transport">Subway: 1 from Canal St to South Ferry or walk to WTC area (15 mins)</div></div></div>
+        <div class="item" data-stop="1"><div class="time">10:30&ndash;11:15</div><div class="info"><div class="title">9/11 Memorial &amp; Ground Zero</div><div class="detail">Reflecting pools where the Twin Towers stood. Outdoor memorial free.</div></div></div>
+        <div class="item" data-stop="2"><div class="time">11:15&ndash;11:45</div><div class="info"><div class="title">The Oculus</div><div class="detail">Stunning WTC transportation hub. Free. Great for photos.</div></div></div>
+        <div class="item" data-stop="3"><div class="time">11:45&ndash;12:15</div><div class="info"><div class="title">Walk down Wall Street</div><div class="detail">NYSE, Charging Bull, Fearless Girl. 10 min walk from Oculus.</div></div></div>
+        <div class="item"><div class="time">12:30</div><div class="info"><div class="title">Lunch &mdash; Eataly Downtown</div><div class="detail">Inside Brookfield Place, next to Oculus.</div></div></div>
+        <div class="item" data-stop="4"><div class="time">13:30</div><div class="info"><div class="title">Chelsea Market</div><div class="detail">Food hall &amp; shops. 75 9th Ave.</div><div class="transport">Subway: A/C from Fulton St to 14th St (10 mins)</div></div></div>
+        <div class="item" data-stop="5"><div class="time">14:00</div><div class="info"><div class="title">The High Line</div><div class="detail">Elevated park on old railway tracks. Enter at 16th St next to Chelsea Market.</div></div></div>
+        <div class="item" data-stop="6"><div class="time">14:30</div><div class="info"><div class="title">Pier 57 Rooftop Park</div><div class="detail">NYC's largest free rooftop. Hudson River views.</div></div></div>
+        <div class="item" data-stop="7"><div class="time">15:00</div><div class="info"><div class="title">Little Island at Pier 55</div><div class="detail">Artificial island park, stunning architecture. Free. Right next door.</div></div></div>
+        <div class="item" data-stop="8"><div class="time">15:30</div><div class="info"><div class="title">Head to Empire State Building</div><div class="transport">Subway: 1 from Christopher St&ndash;Sheridan Sq to 34th St&ndash;Penn Station (10 mins), walk east to 34th St</div></div></div>
+        <div class="item" data-stop="8"><div class="time">16:30&ndash;19:30</div><div class="info"><div class="title booked">Empire State Building &mdash; Sunset</div><div class="detail">86th floor, 360&deg; views. Sunset at 19:28 &mdash; stay for the city lights. No time limit. $44pp.</div></div></div>
+        <div class="item" data-stop="9"><div class="time">19:45</div><div class="info"><div class="title booked">Gayle's Broadway Rose &mdash; Dinner</div><div class="detail">228 W 47th St. 13 block walk north from Empire State. Broadway performers sing while you eat. Amazing milkshakes.</div></div></div>
+        <div class="item" data-stop="9"><div class="time">~21:30</div><div class="info"><div class="title">Final Times Square stroll</div><div class="detail">Photos under the bright lights.</div></div></div>
+      </div>
+    </div>
+
+    <!-- THURSDAY -->
+    <div class="day" data-day="thu">
+      <div class="day-head" onclick="this.parentElement.classList.toggle('open')">
+        <div>
+          <h2>Thursday 9 April</h2>
+          <span class="weather">Sunny &bull; 9&ndash;11&deg;C</span>
+        </div>
+        <div class="meta"><span class="tag">Fly Home</span><span class="arrow">&#9662;</span></div>
+      </div>
+      <div class="day-body">
+        <div class="warn"><strong>Hard deadline:</strong> Leave Moxy by 14:00&ndash;14:15. Newark Airport by 15:30. Flight at 18:40 from EWR (not JFK!).</div>
+        <div class="item" data-stop="0"><div class="time">08:30</div><div class="info"><div class="title">Final NYC breakfast</div><div class="detail">Ess-a-Bagel, hotel breakfast, or nearby.</div></div></div>
+        <div class="item" data-stop="0"><div class="time">09:30</div><div class="info"><div class="title">Check out of Moxy &mdash; store luggage</div><div class="detail">Most hotels store luggage free. Confirm at check-in.</div></div></div>
+        <div class="item"><div class="time">10:00&ndash;13:00</div><div class="info"><div class="title">Last-minute activities</div><div class="detail">Roosevelt Island Tramway, Rockefeller Center, Central Park, Macy's, souvenirs.</div></div></div>
+        <div class="item"><div class="time">12:30</div><div class="info"><div class="title">Lunch</div><div class="detail">Raising Cane's, Joe's Pizza, or quick grab near hotel.</div></div></div>
+        <div class="item" data-stop="0"><div class="time">13:30</div><div class="info"><div class="title">Pick up luggage from Moxy</div></div></div>
+        <div class="item" data-stop="1"><div class="time">14:15</div><div class="info"><div class="title booked">Subway to Penn Station</div><div class="detail">1 train from Canal St to 34th St&ndash;Penn Station (10 mins).</div></div></div>
+        <div class="item" data-stop="1"><div class="time">14:30</div><div class="info"><div class="title booked">NJ Transit to Newark Airport</div><div class="detail">Penn Station &rarr; Newark Airport Station (25&ndash;30 mins). ~$16pp.</div></div></div>
+        <div class="item" data-stop="2"><div class="time">18:40</div><div class="info"><div class="title booked">Depart EWR &rarr; Montreal &rarr; London</div><div class="detail">Air Canada AC8499/864. Arrive LHR Fri 10 April at 10:00am.</div></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="map-container">
+    <div id="map"></div>
+    <div id="legend"></div>
+  </div>
+</div>
+
+<script>
+  const TOKEN = 'pk.eyJ1IjoiYnlzaXh0ZWVuIiwiYSI6ImNta3U5amtndTF0NDgzZnNlMmlwdjEwdjkifQ.PWuMX7VkQqP-L6IYTGeyGA';
+
+  const DAYS = [
+    {
+      key: 'sat', label: 'Sat', fullLabel: 'Saturday 4 Apr', colour: '#94a3b8',
+      stops: [
+        { name: 'Arrive JFK', time: '22:50', coords: [-73.7781, 40.6413] },
+        { name: 'Moxy Downtown', time: '00:30', coords: [-74.0072, 40.7191], isHotel: true },
+      ]
+    },
+    {
+      key: 'sun', label: 'Sun', fullLabel: 'Sunday 5 Apr', colour: '#f59e0b',
+      stops: [
+        { name: 'Moxy Downtown', time: '08:30', coords: [-74.0072, 40.7191], isHotel: true },
+        { name: 'Summit One Vanderbilt', time: '09:00', coords: [-73.9788, 40.7527] },
+        { name: 'Times Square', time: '11:00', coords: [-73.9857, 40.7580] },
+        { name: 'The View Restaurant (Brunch)', time: '13:30', coords: [-73.9862, 40.7579] },
+        { name: 'SoHo', time: '15:45', coords: [-73.9993, 40.7234] },
+        { name: 'Ghostbusters Firehouse', time: '16:15', coords: [-74.0083, 40.7197] },
+        { name: 'Chinatown', time: '17:00', coords: [-73.9974, 40.7158] },
+        { name: 'Little Italy', time: '18:00', coords: [-73.9977, 40.7198] },
+      ]
+    },
+    {
+      key: 'mon', label: 'Mon', fullLabel: 'Monday 6 Apr', colour: '#22c55e',
+      stops: [
+        { name: 'Moxy Downtown', time: '08:00', coords: [-74.0072, 40.7191], isHotel: true },
+        { name: 'Ess-a-Bagel', time: '08:30', coords: [-73.9712, 40.7554] },
+        { name: 'Roosevelt Island Tramway', time: '09:30', coords: [-73.9575, 40.7611] },
+        { name: 'Central Park (Home Alone 2)', time: '12:30', coords: [-73.9712, 40.7736] },
+        { name: 'The Plaza Hotel', time: '13:30', coords: [-73.9743, 40.7645] },
+        { name: 'Rockefeller Center', time: '14:30', coords: [-73.9787, 40.7587] },
+        { name: 'Pier 83 — Circle Line', time: '18:30', coords: [-73.9997, 40.7627] },
+        { name: "Hell's Kitchen dinner", time: '21:15', coords: [-73.9920, 40.7608] },
+      ]
+    },
+    {
+      key: 'tue', label: 'Tue', fullLabel: 'Tuesday 7 Apr', colour: '#3b82f6',
+      stops: [
+        { name: 'Moxy Downtown', time: '08:00', coords: [-74.0072, 40.7191], isHotel: true },
+        { name: 'Battery Park / Statue of Liberty Ferry', time: '09:30', coords: [-74.0168, 40.7033] },
+        { name: 'DUMBO', time: '13:00', coords: [-73.9890, 40.7033] },
+        { name: 'Brooklyn Bridge (walk)', time: '14:30', coords: [-73.9969, 40.7061] },
+        { name: 'Friends Apartment', time: '15:30', coords: [-74.0036, 40.7326] },
+        { name: "Carrie Bradshaw's Steps", time: '15:40', coords: [-74.0049, 40.7352] },
+        { name: 'Washington Square Park', time: '15:50', coords: [-73.9973, 40.7308] },
+        { name: 'Stranger Things — Marquis Theatre', time: '19:00', coords: [-73.9862, 40.7579] },
+      ]
+    },
+    {
+      key: 'wed', label: 'Wed', fullLabel: 'Wednesday 8 Apr', colour: '#a855f7',
+      stops: [
+        { name: 'Moxy Downtown', time: '09:00', coords: [-74.0072, 40.7191], isHotel: true },
+        { name: '9/11 Memorial', time: '10:30', coords: [-74.0134, 40.7116] },
+        { name: 'The Oculus', time: '11:15', coords: [-74.0134, 40.7127] },
+        { name: 'Wall Street', time: '11:45', coords: [-74.0106, 40.7069] },
+        { name: 'Chelsea Market', time: '13:30', coords: [-74.0063, 40.7424] },
+        { name: 'The High Line', time: '14:00', coords: [-74.0050, 40.7420] },
+        { name: 'Pier 57 Rooftop', time: '14:30', coords: [-74.0094, 40.7432] },
+        { name: 'Little Island', time: '15:00', coords: [-74.0104, 40.7421] },
+        { name: 'Empire State Building', time: '16:30', coords: [-73.9857, 40.7484] },
+        { name: "Gayle's Broadway Rose", time: '19:45', coords: [-73.9862, 40.7590] },
+      ]
+    },
+    {
+      key: 'thu', label: 'Thu', fullLabel: 'Thursday 9 Apr', colour: '#ef4444',
+      stops: [
+        { name: 'Moxy Downtown', time: '08:30', coords: [-74.0072, 40.7191], isHotel: true },
+        { name: 'Penn Station', time: '14:15', coords: [-73.9937, 40.7506] },
+        { name: 'Newark Airport (EWR)', time: '18:40', coords: [-74.1745, 40.6895] },
+      ]
+    },
+  ];
+
+  mapboxgl.accessToken = TOKEN;
+
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/dark-v11',
+    center: [-73.99, 40.735],
+    zoom: 11.5,
+  });
+
+  map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+  let markers = [];
+  let activeDay = 'all';
+  const routeCache = {};
+
+  // Build day buttons
+  const btnContainer = document.getElementById('dayButtons');
+
+  function makeBtn(key, label) {
+    const btn = document.createElement('button');
+    btn.className = 'day-btn';
+    btn.textContent = label;
+    btn.dataset.day = key;
+    btn.addEventListener('click', () => selectDay(key));
+    btnContainer.appendChild(btn);
+    return btn;
+  }
+
+  const allBtn = makeBtn('all', 'All');
+  DAYS.forEach(d => makeBtn(d.key, d.label));
+
+  // Legend
+  const legendEl = document.getElementById('legend');
+  legendEl.innerHTML = DAYS.map(d =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${d.colour}"></div><span>${d.fullLabel}</span></div>`
+  ).join('');
+
+  function updateButtons() {
+    document.querySelectorAll('.day-btn').forEach(btn => {
+      const k = btn.dataset.day;
+      if (k === activeDay) {
+        btn.classList.add('active');
+        const col = k === 'all' ? '#f59e0b' : DAYS.find(d => d.key === k).colour;
+        btn.style.borderColor = col;
+        btn.style.background = col;
+        btn.style.color = '#fff';
+      } else {
+        btn.classList.remove('active');
+        btn.style.borderColor = '';
+        btn.style.background = '';
+        btn.style.color = '';
+      }
+    });
+  }
+
+  function clearMarkers() {
+    markers.forEach(m => m.remove());
+    markers = [];
+  }
+
+  // Track marker-to-itinerary mapping
+  let markerMeta = [];
+
+  function addMarkers(daysToShow) {
+    markerMeta = [];
+    daysToShow.forEach(day => {
+      day.stops.forEach((stop, i) => {
+        const el = document.createElement('div');
+        el.className = 'marker';
+        if (stop.isHotel) {
+          el.style.background = '#ffffff';
+          el.style.color = '#0f172a';
+          el.style.fontSize = '13px';
+          el.textContent = '\u{1F3E8}';
+        } else {
+          el.style.background = day.colour;
+          el.textContent = i + 1;
+        }
+
+        const popup = new mapboxgl.Popup({ offset: 18, closeButton: true })
+          .setHTML(`
+            <div class="popup-name">${stop.name}</div>
+            <div class="popup-time">${stop.time}</div>
+            <div class="popup-day" style="background:${day.colour}33; color:${day.colour}">${day.fullLabel}</div>
+          `);
+
+        const marker = new mapboxgl.Marker({ element: el })
+          .setLngLat(stop.coords)
+          .setPopup(popup)
+          .addTo(map);
+
+        // Click marker -> scroll itinerary
+        el.addEventListener('click', () => {
+          scrollToItem(day.key, i);
+        });
+
+        markers.push(marker);
+        markerMeta.push({ dayKey: day.key, stopIndex: i, marker });
+      });
+    });
+  }
+
+  function fitBounds(daysToShow) {
+    const bounds = new mapboxgl.LngLatBounds();
+    daysToShow.forEach(day => day.stops.forEach(s => bounds.extend(s.coords)));
+    map.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 600 });
+  }
+
+  async function fetchRoute(day) {
+    if (routeCache[day.key]) return routeCache[day.key];
+    if (day.stops.length < 2) { routeCache[day.key] = null; return null; }
+
+    const coordStr = day.stops.map(s => s.coords.join(',')).join(';');
+    const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${coordStr}?geometries=geojson&overview=full&access_token=${TOKEN}`;
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+      if (data.routes && data.routes.length > 0) {
+        routeCache[day.key] = data.routes[0].geometry;
+        return routeCache[day.key];
+      }
+      throw new Error('No route');
+    } catch (e) {
+      const fallback = { type: 'LineString', coordinates: day.stops.map(s => s.coords) };
+      routeCache[day.key] = fallback;
+      return fallback;
+    }
+  }
+
+  async function drawRoutes(daysToShow) {
+    DAYS.forEach(day => {
+      const id = `route-${day.key}`;
+      if (map.getLayer(id)) map.removeLayer(id);
+      if (map.getSource(id)) map.removeSource(id);
+    });
+
+    for (const day of daysToShow) {
+      const geometry = await fetchRoute(day);
+      if (!geometry) continue;
+      const id = `route-${day.key}`;
+      map.addSource(id, { type: 'geojson', data: { type: 'Feature', geometry } });
+      map.addLayer({
+        id, type: 'line', source: id,
+        paint: { 'line-color': day.colour, 'line-width': 3, 'line-opacity': 0.7 },
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+      });
+    }
+  }
+
+  // Itinerary <-> Map interaction
+  function scrollToItem(dayKey, stopIndex) {
+    const dayCard = document.querySelector(`.day[data-day="${dayKey}"]`);
+    if (!dayCard) return;
+    if (!dayCard.classList.contains('open')) dayCard.classList.add('open');
+    const items = dayCard.querySelectorAll('.item[data-stop]');
+    const target = Array.from(items).find(el => parseInt(el.dataset.stop) === stopIndex);
+    if (target) {
+      document.querySelectorAll('.item.active').forEach(el => el.classList.remove('active'));
+      target.classList.add('active');
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  function flyToStop(dayKey, stopIndex) {
+    const day = DAYS.find(d => d.key === dayKey);
+    if (!day || !day.stops[stopIndex]) return;
+    const stop = day.stops[stopIndex];
+    map.flyTo({ center: stop.coords, zoom: 15, duration: 600 });
+
+    // Open popup
+    const meta = markerMeta.find(m => m.dayKey === dayKey && m.stopIndex === stopIndex);
+    if (meta) {
+      markers.forEach(m => m.getPopup()?.remove());
+      meta.marker.togglePopup();
+    }
+  }
+
+  // Click itinerary items -> fly to map
+  document.querySelectorAll('.item[data-stop]').forEach(item => {
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('a')) return;
+      const dayKey = item.closest('.day').dataset.day;
+      const stopIndex = parseInt(item.dataset.stop);
+
+      document.querySelectorAll('.item.active').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+
+      flyToStop(dayKey, stopIndex);
+    });
+  });
+
+  // Day switching — sync itinerary and map
+  async function selectDay(key) {
+    activeDay = key;
+    updateButtons();
+    clearMarkers();
+
+    const daysToShow = key === 'all' ? DAYS : DAYS.filter(d => d.key === key);
+
+    // Show/hide itinerary day cards
+    document.querySelectorAll('.day[data-day]').forEach(card => {
+      if (key === 'all') {
+        card.style.display = '';
+      } else {
+        card.style.display = card.dataset.day === key ? '' : 'none';
+      }
+    });
+
+    // Open the selected day's card
+    if (key !== 'all') {
+      const dayCard = document.querySelector(`.day[data-day="${key}"]`);
+      if (dayCard && !dayCard.classList.contains('open')) dayCard.classList.add('open');
+    }
+
+    addMarkers(daysToShow);
+    await drawRoutes(daysToShow);
+    fitBounds(daysToShow);
+
+    legendEl.classList.toggle('visible', key === 'all');
+  }
+
+  map.on('load', () => selectDay('all'));
+</script>
+
+</body>
+</html>

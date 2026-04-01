@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NYC Trip — Route Map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #334155;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    #header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      z-index: 10;
+      position: relative;
+    }
+    #header h1 {
+      font-size: 16px;
+      font-weight: 700;
+      white-space: nowrap;
+      margin-right: 8px;
+    }
+    .day-buttons {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .day-btn {
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .day-btn:hover {
+      border-color: var(--text-muted);
+      color: var(--text);
+    }
+    .day-btn.active {
+      color: #fff;
+    }
+    #map {
+      width: 100%;
+      height: calc(100vh - 56px);
+    }
+    .mapboxgl-popup-content {
+      background: var(--card) !important;
+      color: var(--text) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 8px !important;
+      padding: 12px 14px !important;
+      font-family: 'Inter', sans-serif !important;
+      max-width: 240px !important;
+    }
+    .mapboxgl-popup-tip {
+      border-top-color: var(--card) !important;
+    }
+    .mapboxgl-popup-close-button {
+      color: var(--text-muted) !important;
+      font-size: 18px !important;
+      right: 6px !important;
+      top: 4px !important;
+    }
+    .popup-name {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .popup-time {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .popup-day {
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 4px;
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    #legend {
+      position: absolute;
+      bottom: 32px;
+      left: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      z-index: 5;
+      display: none;
+    }
+    #legend.visible { display: block; }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .legend-item:last-child { margin-bottom: 0; }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .marker {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      border: 2px solid #fff;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    @media (max-width: 600px) {
+      #header { padding: 8px 10px; gap: 8px; }
+      #header h1 { font-size: 14px; }
+      .day-btn { font-size: 11px; padding: 5px 8px; }
+      #map { height: calc(100vh - 80px); }
+    }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <h1>NYC Trip &mdash; Route Map</h1>
+    <div class="day-buttons" id="dayButtons"></div>
+  </div>
+  <div id="map"></div>
+  <div id="legend"></div>
+
+  <script>
+    const TOKEN = 'pk.eyJ1IjoiYnlzaXh0ZWVuIiwiYSI6ImNta3U5amtndTF0NDgzZnNlMmlwdjEwdjkifQ.PWuMX7VkQqP-L6IYTGeyGA';
+
+    const DAYS = [
+      {
+        key: 'sat', label: 'Sat', fullLabel: 'Saturday 4 Apr', colour: '#94a3b8',
+        stops: [
+          { name: 'Arrive JFK', time: '22:50', coords: [-73.7781, 40.6413] },
+          { name: 'Moxy Downtown', time: '00:30', coords: [-74.0072, 40.7191] },
+        ]
+      },
+      {
+        key: 'sun', label: 'Sun', fullLabel: 'Sunday 5 Apr', colour: '#f59e0b',
+        stops: [
+          { name: 'Moxy Downtown', time: '09:30', coords: [-74.0072, 40.7191], isHotel: true },
+          { name: 'Ghostbusters Firehouse', time: '10:00', coords: [-74.0083, 40.7197] },
+          { name: 'SoHo', time: '10:30', coords: [-73.9993, 40.7234] },
+          { name: 'Times Square', time: '11:45', coords: [-73.9857, 40.7580] },
+          { name: 'The View Restaurant (Brunch)', time: '13:30', coords: [-73.9862, 40.7579] },
+          { name: 'Chinatown', time: '15:45', coords: [-73.9974, 40.7158] },
+          { name: 'Little Italy', time: '16:30', coords: [-73.9977, 40.7198] },
+        ]
+      },
+      {
+        key: 'mon', label: 'Mon', fullLabel: 'Monday 6 Apr', colour: '#22c55e',
+        stops: [
+          { name: 'Moxy Downtown', time: '08:00', coords: [-74.0072, 40.7191], isHotel: true },
+          { name: 'Ess-a-Bagel', time: '08:30', coords: [-73.9712, 40.7554] },
+          { name: 'Roosevelt Island Tramway', time: '09:30', coords: [-73.9575, 40.7611] },
+          { name: 'Central Park (Home Alone 2)', time: '12:30', coords: [-73.9712, 40.7736] },
+          { name: 'The Plaza Hotel', time: '13:30', coords: [-73.9743, 40.7645] },
+          { name: 'Rockefeller Center', time: '14:30', coords: [-73.9787, 40.7587] },
+          { name: 'Pier 83 — Circle Line', time: '18:30', coords: [-73.9997, 40.7627] },
+          { name: "Hell's Kitchen dinner", time: '21:15', coords: [-73.9920, 40.7608] },
+        ]
+      },
+      {
+        key: 'tue', label: 'Tue', fullLabel: 'Tuesday 7 Apr', colour: '#3b82f6',
+        stops: [
+          { name: 'Moxy Downtown', time: '07:30', coords: [-74.0072, 40.7191], isHotel: true },
+          { name: 'Clinton St. Baking Co', time: '08:00', coords: [-73.9839, 40.7209] },
+          { name: 'Battery Park / Statue of Liberty Ferry', time: '09:30', coords: [-74.0168, 40.7033] },
+          { name: 'DUMBO', time: '13:00', coords: [-73.9890, 40.7033] },
+          { name: 'Brooklyn Bridge (walk)', time: '14:30', coords: [-73.9969, 40.7061] },
+          { name: 'Friends Apartment', time: '15:30', coords: [-74.0036, 40.7326] },
+          { name: "Carrie Bradshaw's Steps", time: '15:40', coords: [-74.0049, 40.7352] },
+          { name: 'Washington Square Park', time: '15:50', coords: [-73.9973, 40.7308] },
+          { name: 'Stranger Things — Marquis Theatre', time: '19:00', coords: [-73.9862, 40.7579] },
+        ]
+      },
+      {
+        key: 'wed', label: 'Wed', fullLabel: 'Wednesday 8 Apr', colour: '#a855f7',
+        stops: [
+          { name: 'Moxy Downtown', time: '08:00', coords: [-74.0072, 40.7191], isHotel: true },
+          { name: 'Summit One Vanderbilt', time: '09:00', coords: [-73.9788, 40.7527] },
+          { name: '9/11 Memorial', time: '11:30', coords: [-74.0134, 40.7116] },
+          { name: 'The Oculus', time: '12:15', coords: [-74.0134, 40.7127] },
+          { name: 'Wall Street', time: '12:45', coords: [-74.0106, 40.7069] },
+          { name: 'Chelsea Market', time: '14:00', coords: [-74.0063, 40.7424] },
+          { name: 'The High Line', time: '14:30', coords: [-74.0050, 40.7420] },
+          { name: 'Pier 57 Rooftop', time: '15:00', coords: [-74.0094, 40.7432] },
+          { name: 'Little Island', time: '15:30', coords: [-74.0104, 40.7421] },
+          { name: 'Empire State Building', time: '16:30', coords: [-73.9857, 40.7484] },
+          { name: "Gayle's Broadway Rose", time: '19:45', coords: [-73.9862, 40.7590] },
+        ]
+      },
+      {
+        key: 'thu', label: 'Thu', fullLabel: 'Thursday 9 Apr', colour: '#ef4444',
+        stops: [
+          { name: 'Moxy Downtown', time: '08:30', coords: [-74.0072, 40.7191] },
+          { name: 'Penn Station', time: '14:15', coords: [-73.9937, 40.7506] },
+          { name: 'Newark Airport (EWR)', time: '18:40', coords: [-74.1745, 40.6895] },
+        ]
+      },
+    ];
+
+    mapboxgl.accessToken = TOKEN;
+
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/dark-v11',
+      center: [-73.99, 40.735],
+      zoom: 11.5,
+    });
+
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    let markers = [];
+    let activeDay = 'all';
+    const routeCache = {};
+
+    // Build day buttons
+    const btnContainer = document.getElementById('dayButtons');
+    const allBtn = document.createElement('button');
+    allBtn.className = 'day-btn active';
+    allBtn.textContent = 'All Days';
+    allBtn.style.borderColor = '#f59e0b';
+    allBtn.style.background = '#f59e0b';
+    allBtn.style.color = '#fff';
+    allBtn.dataset.day = 'all';
+    allBtn.addEventListener('click', () => selectDay('all'));
+    btnContainer.appendChild(allBtn);
+
+    DAYS.forEach(day => {
+      const btn = document.createElement('button');
+      btn.className = 'day-btn';
+      btn.textContent = day.label;
+      btn.dataset.day = day.key;
+      btn.addEventListener('click', () => selectDay(day.key));
+      btnContainer.appendChild(btn);
+    });
+
+    // Build legend
+    const legendEl = document.getElementById('legend');
+    let legendHTML = '';
+    DAYS.forEach(d => {
+      legendHTML += `<div class="legend-item"><div class="legend-dot" style="background:${d.colour}"></div><span>${d.fullLabel}</span></div>`;
+    });
+    legendEl.innerHTML = legendHTML;
+
+    function updateButtons() {
+      document.querySelectorAll('.day-btn').forEach(btn => {
+        const k = btn.dataset.day;
+        if (k === activeDay) {
+          btn.classList.add('active');
+          if (k === 'all') {
+            btn.style.borderColor = '#f59e0b';
+            btn.style.background = '#f59e0b';
+          } else {
+            const day = DAYS.find(d => d.key === k);
+            btn.style.borderColor = day.colour;
+            btn.style.background = day.colour;
+          }
+          btn.style.color = '#fff';
+        } else {
+          btn.classList.remove('active');
+          btn.style.borderColor = '';
+          btn.style.background = '';
+          btn.style.color = '';
+        }
+      });
+    }
+
+    function clearMarkers() {
+      markers.forEach(m => m.remove());
+      markers = [];
+    }
+
+    function addMarkers(daysToShow) {
+      daysToShow.forEach(day => {
+        day.stops.forEach((stop, i) => {
+          const el = document.createElement('div');
+          el.className = 'marker';
+          if (stop.isHotel) {
+            el.style.background = '#ffffff';
+            el.style.color = '#0f172a';
+            el.style.fontSize = '14px';
+            el.textContent = '🏨';
+          } else {
+            el.style.background = day.colour;
+            el.textContent = i + 1;
+          }
+
+          const popup = new mapboxgl.Popup({ offset: 18, closeButton: true })
+            .setHTML(`
+              <div class="popup-name">${stop.name}</div>
+              <div class="popup-time">${stop.time}</div>
+              <div class="popup-day" style="background:${day.colour}33; color:${day.colour}">${day.fullLabel}</div>
+            `);
+
+          const marker = new mapboxgl.Marker({ element: el })
+            .setLngLat(stop.coords)
+            .setPopup(popup)
+            .addTo(map);
+          markers.push(marker);
+        });
+      });
+    }
+
+    function fitBounds(daysToShow) {
+      const bounds = new mapboxgl.LngLatBounds();
+      daysToShow.forEach(day => {
+        day.stops.forEach(stop => bounds.extend(stop.coords));
+      });
+      map.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 600 });
+    }
+
+    // Fetch walking route from Directions API, fallback to straight line
+    async function fetchRoute(day) {
+      if (routeCache[day.key]) return routeCache[day.key];
+      if (day.stops.length < 2) {
+        routeCache[day.key] = null;
+        return null;
+      }
+
+      const coordStr = day.stops.map(s => s.coords.join(',')).join(';');
+      const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${coordStr}?geometries=geojson&overview=full&access_token=${TOKEN}`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Directions API error');
+        const data = await res.json();
+        if (data.routes && data.routes.length > 0) {
+          routeCache[day.key] = data.routes[0].geometry;
+          return routeCache[day.key];
+        }
+        throw new Error('No route found');
+      } catch (e) {
+        // Fallback: straight lines
+        const fallback = {
+          type: 'LineString',
+          coordinates: day.stops.map(s => s.coords),
+        };
+        routeCache[day.key] = fallback;
+        return fallback;
+      }
+    }
+
+    async function drawRoutes(daysToShow) {
+      // Remove old route layers/sources
+      DAYS.forEach(day => {
+        const id = `route-${day.key}`;
+        if (map.getLayer(id)) map.removeLayer(id);
+        if (map.getSource(id)) map.removeSource(id);
+      });
+
+      for (const day of daysToShow) {
+        const geometry = await fetchRoute(day);
+        if (!geometry) continue;
+
+        const id = `route-${day.key}`;
+        map.addSource(id, {
+          type: 'geojson',
+          data: { type: 'Feature', geometry },
+        });
+        map.addLayer({
+          id,
+          type: 'line',
+          source: id,
+          paint: {
+            'line-color': day.colour,
+            'line-width': 3,
+            'line-opacity': 0.7,
+          },
+          layout: {
+            'line-cap': 'round',
+            'line-join': 'round',
+          },
+        });
+      }
+    }
+
+    async function selectDay(key) {
+      activeDay = key;
+      updateButtons();
+      clearMarkers();
+
+      const daysToShow = key === 'all' ? DAYS : DAYS.filter(d => d.key === key);
+
+      addMarkers(daysToShow);
+      await drawRoutes(daysToShow);
+      fitBounds(daysToShow);
+
+      legendEl.classList.toggle('visible', key === 'all');
+    }
+
+    map.on('load', () => {
+      selectDay('all');
+    });
+  </script>
+</body>
+</html>
