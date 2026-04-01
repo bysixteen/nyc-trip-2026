@@ -79,9 +79,18 @@
     .day-body { display: none; padding: 0.4rem 0.8rem 0.8rem; }
     .day.open .day-body { display: block; }
 
+    .day-body { counter-reset: stop; }
     .item {
       display: flex; gap: 0.6rem; padding: 0.4rem 0.2rem; border-bottom: 1px solid #1f1f1f;
       border-radius: 4px; cursor: pointer; transition: background 0.15s;
+      counter-increment: stop;
+    }
+    .item::before {
+      content: counter(stop);
+      min-width: 20px; width: 20px; height: 20px; line-height: 20px;
+      text-align: center; font-size: 0.65rem; font-weight: 700;
+      background: #2a2a2a; color: var(--muted); border-radius: 50%;
+      flex-shrink: 0; margin-top: 1px;
     }
     .item:hover { background: #252525; }
     .item.active { background: #1a2a3a; border-left: 3px solid var(--blue); padding-left: 0.4rem; }
@@ -90,6 +99,13 @@
     .info { flex: 1; }
     .info .title { font-size: 0.82rem; font-weight: 600; }
     .info .title.booked { color: var(--green); }
+    .info .title.booked::after {
+      content: 'BOOKED';
+      font-size: 0.55rem; font-weight: 700; letter-spacing: 0.03em;
+      background: #1a3a2a; color: var(--green);
+      padding: 1px 5px; border-radius: 4px;
+      margin-left: 6px; vertical-align: middle;
+    }
     .info .detail { font-size: 0.75rem; color: #999; margin-top: 1px; }
     .info .transport { font-size: 0.7rem; color: var(--blue); margin-top: 1px; }
     .warn { background: #2a1a1a; color: var(--red); font-size: 0.75rem; padding: 0.4rem 0.6rem; border-radius: 6px; margin-bottom: 0.4rem; }
@@ -226,8 +242,8 @@
       </div>
       <div class="day-body">
         <div class="item" data-stop="0"><div class="time">08:00</div><div class="info"><div class="title">Breakfast at the hotel</div><div class="detail">Fuel up at the Moxy.</div></div></div>
-        <div class="item" data-stop="1"><div class="time">09:00&ndash;09:30</div><div class="info"><div class="title">SoHo wander</div><div class="detail">Cast-iron architecture, street art, boutiques &amp; galleries. 10 min walk from Moxy.</div></div></div>
-        <div class="item" data-stop="2"><div class="time">09:45&ndash;10:15</div><div class="info"><div class="title">Ghostbusters Firehouse (Hook &amp; Ladder 8)</div><div class="detail">14 N Moore St, Tribeca. 10 min walk south from SoHo. Free!</div></div></div>
+        <div class="item" data-stop="1"><div class="time">09:00&ndash;09:30</div><div class="info"><div class="title">Ghostbusters Firehouse (Hook &amp; Ladder 8)</div><div class="detail">14 N Moore St, Tribeca. 10 min walk south from Moxy. Free!</div></div></div>
+        <div class="item" data-stop="2"><div class="time">09:45&ndash;10:15</div><div class="info"><div class="title">SoHo wander</div><div class="detail">Cast-iron architecture, street art, boutiques &amp; galleries. 10 min walk north from Tribeca.</div></div></div>
         <div class="item" data-stop="3"><div class="time">10:20&ndash;10:45</div><div class="info"><div class="title">Little Italy wander</div><div class="detail">Walk north up Mulberry St &mdash; Italian restaurants, delis &amp; bakeries. Grab a cannoli from Ferrara Bakery (195 Grand St)!</div></div></div>
         <div class="item" data-stop="4"><div class="time">10:45&ndash;11:30</div><div class="info"><div class="title">Chinatown</div><div class="detail">Canal St &amp; Mott St &mdash; street markets, bakeries, bubble tea.</div></div></div>
         <div class="item" data-stop="5"><div class="time">11:45</div><div class="info"><div class="title">Ferry to DUMBO</div><div class="transport">NYC Ferry from Pier 11 (Wall St) to DUMBO (10 mins, $4pp). Walk south from Chinatown to Pier 11 (10 mins).</div></div></div>
@@ -266,8 +282,8 @@
         <div class="item" data-stop="6"><div class="time">15:30</div><div class="info"><div class="title">The High Line</div><div class="detail">Elevated park on old railway tracks. Enter at 16th St next to Chelsea Market.</div></div></div>
         <div class="item" data-stop="7"><div class="time">15:45</div><div class="info"><div class="title">Pier 57 Rooftop Park</div><div class="detail">NYC's largest free rooftop. Hudson River views.</div></div></div>
         <div class="item" data-stop="8"><div class="time">16:00</div><div class="info"><div class="title">Little Island at Pier 55</div><div class="detail">Artificial island park, stunning architecture. Free. Right next door.</div></div></div>
-        <div class="item" data-stop="9"><div class="time">17:00</div><div class="info"><div class="title">Head back to hotel / chill</div><div class="detail">Rest up before dinner. Long day!</div><div class="transport">Subway: 1 from Christopher St to Canal St (5 mins)</div></div></div>
-        <div class="item" data-stop="9"><div class="time">19:45</div><div class="info"><div class="title booked">Gayle's Broadway Rose &mdash; Dinner</div><div class="detail">228 W 47th St. Broadway performers sing while you eat. Amazing milkshakes.</div><div class="transport">Subway: 1 from Canal St to 42nd St&ndash;Times Sq (15 mins)</div></div></div>
+        <div class="item" data-stop="9"><div class="time">17:00</div><div class="info"><div class="title">Head up to Times Square area</div><div class="detail">No time to go back to the hotel &mdash; stay out and explore midtown before dinner.</div><div class="transport">Subway: 1 from Christopher St to 42nd St&ndash;Times Sq (15 mins), or walk up the West Side (~40 mins)</div></div></div>
+        <div class="item" data-stop="9"><div class="time">19:45</div><div class="info"><div class="title booked">Gayle's Broadway Rose &mdash; Dinner</div><div class="detail">228 W 47th St. Broadway performers sing while you eat. Amazing milkshakes.</div><div class="transport">Already in Times Square area &mdash; short walk to 47th St</div></div></div>
         <div class="item" data-stop="9"><div class="time">~21:30</div><div class="info"><div class="title">Final Times Square stroll</div><div class="detail">Photos under the bright lights.</div></div></div>
       </div>
     </div>
@@ -340,8 +356,8 @@
       key: 'tue', label: 'Tue', fullLabel: 'Tuesday 7 Apr', colour: '#3b82f6',
       stops: [
         { name: 'Moxy Downtown', time: '08:00', coords: [-74.0072, 40.7191], isHotel: true },
-        { name: 'SoHo', time: '09:00', coords: [-73.9993, 40.7234] },
-        { name: 'Ghostbusters Firehouse', time: '09:45', coords: [-74.0083, 40.7197] },
+        { name: 'Ghostbusters Firehouse', time: '09:00', coords: [-74.0083, 40.7197] },
+        { name: 'SoHo', time: '09:45', coords: [-73.9993, 40.7234] },
         { name: 'Little Italy', time: '10:20', coords: [-73.9977, 40.7198] },
         { name: 'Chinatown', time: '10:45', coords: [-73.9974, 40.7158] },
         { name: 'DUMBO', time: '12:00', coords: [-73.9890, 40.7033] },
