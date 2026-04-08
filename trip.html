@@ -79,14 +79,12 @@
     .day-body { display: none; padding: 0.4rem 0.8rem 0.8rem; }
     .day.open .day-body { display: block; }
 
-    .day-body { counter-reset: stop; }
     .item {
       display: flex; gap: 0.6rem; padding: 0.4rem 0.2rem; border-bottom: 1px solid #1f1f1f;
       border-radius: 4px; cursor: pointer; transition: background 0.15s;
-      counter-increment: stop;
     }
     .item::before {
-      content: counter(stop);
+      content: attr(data-stop);
       min-width: 20px; width: 20px; height: 20px; line-height: 20px;
       text-align: center; font-size: 0.65rem; font-weight: 700;
       background: #2a2a2a; color: var(--muted); border-radius: 50%;
@@ -333,7 +331,7 @@
           el.textContent = '\u{1F3E8}';
         } else {
           el.style.background = day.colour;
-          el.textContent = i + 1;
+          el.textContent = i;
         }
 
         const popup = new mapboxgl.Popup({ offset: 18, closeButton: true })
